@@ -8,7 +8,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Search, MessageSquarePlus, UserPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { formatDistanceToNow } from 'date-fns';
 import { safeFormatDistance } from '@/lib/dateUtils';
 import type { Conversation } from '@/types';
 

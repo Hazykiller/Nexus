@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogHeader } from '@/components/ui/dialog';
@@ -93,19 +93,19 @@ export default function StoriesPage() {
   const currentGroup = stories[activeGroup];
   const currentStory = currentGroup?.stories[activeStory];
 
-  const goNext = () => {
+  const goNext = useCallback(() => {
     if (!currentGroup) return;
+    // Mark current as viewed
+    if (currentStory) {
+      fetch(`/api/stories/${currentStory.id}/view`, { method: 'POST' }).catch(() => {});
+    }
     if (activeStory < currentGroup.stories.length - 1) {
       setActiveStory(activeStory + 1);
     } else if (activeGroup < stories.length - 1) {
       setActiveGroup(activeGroup + 1);
       setActiveStory(0);
     }
-    // Mark as viewed
-    if (currentStory) {
-      fetch(`/api/stories/${currentStory.id}/view`, { method: 'POST' }).catch(() => {});
-    }
-  };
+  }, [currentGroup, currentStory, activeStory, activeGroup, stories.length]);
 
   const goPrev = () => {
     if (activeStory > 0) {
@@ -115,6 +115,13 @@ export default function StoriesPage() {
       setActiveStory(0);
     }
   };
+
+  // Auto-advance stories every 5 seconds
+  useEffect(() => {
+    if (!currentStory) return;
+    const timer = setTimeout(goNext, 5000);
+    return () => clearTimeout(timer);
+  }, [currentStory, goNext]);
 
   if (loading) {
     return (
@@ -242,9 +249,18 @@ export default function StoriesPage() {
         <div className="relative rounded-2xl overflow-hidden bg-black aspect-[9/16] max-h-[600px] border border-border shadow-inner">
           {/* Progress bars */}
           <div className="absolute top-2 left-2 right-2 flex gap-1 z-20">
-            {currentGroup.stories.map((_, i) => (
+            {currentGroup.stories.map((_: any, i: number) => (
               <div key={i} className="flex-1 h-0.5 rounded-full bg-white/30 overflow-hidden">
-                <div className={`h-full rounded-full transition-all duration-300 ${i < activeStory ? 'w-full bg-white' : i === activeStory ? 'w-full bg-white animate-pulse' : 'w-0'}`} />
+                <div
+                  className={`h-full rounded-full bg-white ${
+                    i < activeStory
+                      ? 'w-full'
+                      : i === activeStory
+                      ? 'animate-[progress_5s_linear_forwards]'
+                      : 'w-0'
+                  }`}
+                  style={i === activeStory ? { animation: 'progress 5s linear forwards' } : undefined}
+                />
               </div>
             ))}
           </div>

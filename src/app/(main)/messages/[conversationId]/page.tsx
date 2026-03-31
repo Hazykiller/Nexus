@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MoveLeft, Send, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
-import { format } from 'date-fns';
 import { safeTimeFormat } from '@/lib/dateUtils';
 import { getPusherClient, channels, events } from '@/lib/pusher';
 

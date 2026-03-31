@@ -38,6 +38,20 @@ export function RightSidebar() {
       if (res.ok) {
         setFollowingIds((prev) => new Set(prev).add(userId));
         toast.success('Following!');
+        // Remove from suggestions after a short delay for visual feedback
+        setTimeout(() => {
+          setSuggestedUsers((prev) => prev.filter((u) => u.id !== userId));
+          // Refresh suggestions
+          fetch('/api/recommendations/users')
+            .then((r) => r.json())
+            .then((data) => {
+              const newUsers = (data.data || []).filter(
+                (u: User) => !followingIds.has(u.id) && u.id !== userId
+              );
+              setSuggestedUsers(newUsers.slice(0, 5));
+            })
+            .catch(() => {});
+        }, 800);
       }
     } catch {
       toast.error('Failed to follow');

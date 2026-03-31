@@ -33,7 +33,6 @@ import {
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-import { formatDistanceToNow } from 'date-fns';
 import { safeFormatDistance } from '@/lib/dateUtils';
 import Link from 'next/link';
 import type { Post, Comment } from '@/types';

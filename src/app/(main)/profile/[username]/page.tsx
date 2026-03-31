@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PostCard } from '@/components/feed/PostCard';
+import { UserListModal } from '@/components/profile/UserListModal';
 import {
   MapPin,
   Link as LinkIcon,
@@ -46,6 +47,9 @@ export default function ProfilePage() {
   const [loadingSaved, setLoadingSaved] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [activeTab, setActiveTab] = useState('posts');
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [listModal, setListModal] = useState<{ open: boolean; type: 'followers' | 'following' }>({ open: false, type: 'followers' });
 
   useEffect(() => {
     async function load() {
@@ -65,6 +69,8 @@ export default function ProfilePage() {
         if (userRes.success) {
           setProfile(userRes.data);
           setIsFollowing(userRes.data.isFollowing);
+          setFollowersCount(userRes.data.followersCount || 0);
+          setFollowingCount(userRes.data.followingCount || 0);
         }
         if (postsRes.success) setPosts(postsRes.data || []);
       } catch { /* silently fail */ }
@@ -100,11 +106,16 @@ export default function ProfilePage() {
 
   const handleFollow = async () => {
     if (!profile) return;
+    const wasFollowing = isFollowing;
+    setIsFollowing(!wasFollowing);
+    setFollowersCount((c) => wasFollowing ? Math.max(0, c - 1) : c + 1);
     try {
-      await fetch(`/api/users/${profile.id}/follow`, { method: isFollowing ? 'DELETE' : 'POST' });
-      setIsFollowing(!isFollowing);
-      toast.success(isFollowing ? 'Unfollowed' : 'Following');
+      const res = await fetch(`/api/users/${profile.id}/follow`, { method: wasFollowing ? 'DELETE' : 'POST' });
+      if (!res.ok) throw new Error();
+      toast.success(wasFollowing ? 'Unfollowed' : 'Following');
     } catch {
+      setIsFollowing(wasFollowing);
+      setFollowersCount((c) => wasFollowing ? c + 1 : Math.max(0, c - 1));
       toast.error('Failed');
     }
   };
@@ -228,13 +239,23 @@ export default function ProfilePage() {
             <button className="text-sm hover:underline">
               <span className="font-bold">{profile.postsCount || 0}</span> <span className="text-muted-foreground">Posts</span>
             </button>
-            <button className="text-sm hover:underline">
-              <span className="font-bold">{profile.followersCount || 0}</span> <span className="text-muted-foreground">Followers</span>
+            <button className="text-sm hover:underline" onClick={() => setListModal({ open: true, type: 'followers' })}>
+              <span className="font-bold">{followersCount}</span> <span className="text-muted-foreground">Followers</span>
             </button>
-            <button className="text-sm hover:underline">
-              <span className="font-bold">{profile.followingCount || 0}</span> <span className="text-muted-foreground">Following</span>
+            <button className="text-sm hover:underline" onClick={() => setListModal({ open: true, type: 'following' })}>
+              <span className="font-bold">{followingCount}</span> <span className="text-muted-foreground">Following</span>
             </button>
           </div>
+
+          {profile && (
+            <UserListModal
+              open={listModal.open}
+              onOpenChange={(open) => setListModal((prev) => ({ ...prev, open }))}
+              title={listModal.type === 'followers' ? `${profile.name}'s Followers` : `${profile.name} is Following`}
+              userId={profile.id}
+              type={listModal.type}
+            />
+          )}
         </div>
       </div>
 
