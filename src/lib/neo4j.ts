@@ -19,7 +19,8 @@ function getDriver(): Driver {
 }
 
 export function getSession(): Session {
-  return getDriver().session({ database: 'neo4j' });
+  const dbName = process.env.NEO4J_DATABASE || 'neo4j';
+  return getDriver().session({ database: dbName });
 }
 
 export async function runQuery<T = Record<string, unknown>>(
