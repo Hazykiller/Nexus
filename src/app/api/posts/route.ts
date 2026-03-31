@@ -312,8 +312,11 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true, data: { id: postId } }, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Create post error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Internal server error', 
+      details: error.message || 'Unknown error during post creation' 
+    }, { status: 500 });
   }
 }

@@ -1,7 +1,7 @@
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format } from 'date-fns';
 
-export function safeFormatDistance(dateVal: any): string {
-  if (!dateVal) return '';
+export function parseNeo4jDate(dateVal: any): Date | null {
+  if (!dateVal) return null;
   try {
     let d: Date;
     if (typeof dateVal === 'string' || typeof dateVal === 'number') {
@@ -17,8 +17,23 @@ export function safeFormatDistance(dateVal: any): string {
     } else {
       d = new Date(dateVal);
     }
-    if (isNaN(d.getTime())) return '';
-    return formatDistanceToNow(d, { addSuffix: true });
+    return isNaN(d.getTime()) ? null : d;
+  } catch {
+    return null;
+  }
+}
+
+export function safeFormatDistance(dateVal: any): string {
+  const d = parseNeo4jDate(dateVal);
+  if (!d) return '';
+  return formatDistanceToNow(d, { addSuffix: true });
+}
+
+export function safeTimeFormat(dateVal: any, formatStr: string = 'p'): string {
+  const d = parseNeo4jDate(dateVal);
+  if (!d) return '';
+  try {
+    return format(d, formatStr);
   } catch {
     return '';
   }

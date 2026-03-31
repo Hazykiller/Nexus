@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { MoveLeft, Send, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { safeTimeFormat } from '@/lib/dateUtils';
 import { getPusherClient, channels, events } from '@/lib/pusher';
 
 interface Message {
@@ -55,7 +56,15 @@ export default function ChatViewPage() {
 
   useEffect(() => {
     if (!conversationId) return;
-    const pusher = getPusherClient();
+    
+    let pusher;
+    try {
+      pusher = getPusherClient();
+    } catch (e) {
+      console.error('Pusher Client Error:', e);
+      return;
+    }
+    
     const channelName = channels.conversation(conversationId);
     
     // Unbind and rebind to prevent duplicates if mounted multiple times
@@ -198,7 +207,7 @@ export default function ChatViewPage() {
                     {msg.content}
                   </div>
                   <span className="text-[10px] text-muted-foreground mt-1 px-1">
-                    {format(new Date(msg.createdAt), 'p')}
+                    {safeTimeFormat(msg.createdAt)}
                   </span>
                 </div>
               </div>

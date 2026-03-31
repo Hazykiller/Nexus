@@ -8,10 +8,14 @@ import { TrendingUp, Hash, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import type { User, Hashtag } from '@/types';
+import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 
 export function RightSidebar() {
   const [suggestedUsers, setSuggestedUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
+  const [followingLoading, setFollowingLoading] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -26,6 +30,21 @@ export function RightSidebar() {
     }
     load();
   }, []);
+
+  const handleFollow = async (userId: string) => {
+    setFollowingLoading(userId);
+    try {
+      const res = await fetch(`/api/users/${userId}/follow`, { method: 'POST' });
+      if (res.ok) {
+        setFollowingIds((prev) => new Set(prev).add(userId));
+        toast.success('Following!');
+      }
+    } catch {
+      toast.error('Failed to follow');
+    } finally {
+      setFollowingLoading(null);
+    }
+  };
 
   return (
     <aside className="hidden xl:block w-[320px] shrink-0">
@@ -67,11 +86,19 @@ export function RightSidebar() {
                     <p className="text-xs text-muted-foreground truncate">@{u.username}</p>
                   </div>
                   <Button
-                    variant="outline"
+                    variant={followingIds.has(u.id) ? 'secondary' : 'outline'}
                     size="sm"
                     className="text-xs px-3 h-7 border-violet-500/30 text-violet-400 hover:bg-violet-500/10"
+                    onClick={() => handleFollow(u.id)}
+                    disabled={followingLoading === u.id || followingIds.has(u.id)}
                   >
-                    Follow
+                    {followingLoading === u.id ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : followingIds.has(u.id) ? (
+                      'Following'
+                    ) : (
+                      'Follow'
+                    )}
                   </Button>
                 </div>
               ))}

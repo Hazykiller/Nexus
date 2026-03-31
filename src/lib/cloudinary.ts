@@ -33,7 +33,8 @@ export function getOptimizedUrl(publicId: string, options: {
   transforms.push(`f_${options.format || 'webp'}`);
 
   const transformStr = transforms.join(',');
-  return `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/${transformStr}/${publicId}`;
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME;
+  return `https://res.cloudinary.com/${cloudName}/image/upload/${transformStr}/${publicId}`;
 }
 
 export default cloudinary;
