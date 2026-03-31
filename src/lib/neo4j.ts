@@ -4,9 +4,9 @@ let driver: Driver | null = null;
 
 function getDriver(): Driver {
   if (!driver) {
-    const uri = process.env.NEO4J_URI!;
-    const username = process.env.NEO4J_USERNAME!;
-    const password = process.env.NEO4J_PASSWORD!;
+    const uri = process.env.NEO4J_URI?.trim() || '';
+    const username = process.env.NEO4J_USERNAME?.trim() || '';
+    const password = process.env.NEO4J_PASSWORD?.trim() || '';
 
     driver = neo4j.driver(uri, neo4j.auth.basic(username, password), {
       maxConnectionPoolSize: 50,
@@ -19,7 +19,7 @@ function getDriver(): Driver {
 }
 
 export function getSession(): Session {
-  const dbName = process.env.NEO4J_DATABASE || 'neo4j';
+  const dbName = process.env.NEO4J_DATABASE?.trim() || 'neo4j';
   return getDriver().session({ database: dbName });
 }
 
