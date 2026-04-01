@@ -3,10 +3,11 @@ import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { runSingleQuery, runWriteQuery } from '@/lib/neo4j';
 import { encryptAtRest } from '@/lib/dbEncryption';
+import { sendOtpEmail } from '@/lib/mail';
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, username, email, password } = await req.json();
+    const { name, username, email, password, dob } = await req.json();
 
     if (!name || !username || !email || !password) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
@@ -30,13 +31,28 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 12);
     const id = uuidv4();
     
+    // Vertex Airtight: Calculate and Validate Age
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    if (age < 13) {
+      return NextResponse.json({ error: 'Vertex is for age 13 and above only.' }, { status: 403 });
+    }
+
+    const isRestricted = age < 18;
+    const encryptedDob = encryptAtRest(dob);
+
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const tier = isRestricted ? '13-18 Restricted' : '18+ Full Access';
     
-    // Log OTP for development (since no SMTP is set up yet)
-    console.log(`\n========================================`);
-    console.log(`🔐 SECURE OTP FOR ${email}: ${otp}`);
-    console.log(`========================================\n`);
+    // Vertex Professional Mailer (Resend Integration)
+    await sendOtpEmail(email, otp, tier);
 
     await runWriteQuery(
       `CREATE (u:User {
@@ -45,12 +61,13 @@ export async function POST(req: NextRequest) {
         username: $username,
         name: $name,
         password: $password,
+        dob: $dob,
+        isRestricted: $isRestricted,
         avatar: '',
         coverPhoto: '',
         bio: '',
         website: '',
         location: '',
-        dob: '',
         privacy: 'public',
         verified: false,
         isAdmin: false,
@@ -59,7 +76,7 @@ export async function POST(req: NextRequest) {
         createdAt: datetime(),
         updatedAt: datetime()
       })`,
-      { id, email: encryptedEmail, username, name, password: hashedPassword, otp }
+      { id, email: encryptedEmail, username, name, password: hashedPassword, dob: encryptedDob, isRestricted, otp }
     );
 
     return NextResponse.json({ success: true, message: 'OTP sent', email }, { status: 201 });

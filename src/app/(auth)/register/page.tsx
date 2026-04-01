@@ -19,6 +19,7 @@ export default function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
+    dob: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -58,6 +59,7 @@ export default function RegisterPage() {
           username: form.username.toLowerCase().replace(/[^a-z0-9_]/g, ''),
           email: form.email,
           password: form.password,
+          dob: form.dob,
         }),
       });
 
@@ -121,12 +123,14 @@ export default function RegisterPage() {
 
   if (isOtpSent) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-gradient-to-br from-cyan-950/50 via-background to-emerald-950/30">
+    <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-gradient-to-br from-indigo-950/50 via-background to-violet-950/30">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <Link href="/" className="inline-flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-cyan-500/25">N</div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">Vertex</span>
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/25">
+                V
+              </div>
+              <span className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">Vertex</span>
             </Link>
           </div>
           <div className="rounded-2xl border border-border bg-card p-8 shadow-xl shadow-black/5">
@@ -145,7 +149,7 @@ export default function RegisterPage() {
                   className="h-11 rounded-xl text-center text-lg tracking-widest"
                 />
               </div>
-              <Button type="submit" disabled={isLoading} className="w-full h-11 rounded-xl bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white shadow-lg shadow-cyan-500/25">
+              <Button type="submit" disabled={isLoading} className="w-full h-11 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-500/25">
                 {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 Verify Account
               </Button>
@@ -162,10 +166,10 @@ export default function RegisterPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-cyan-500/25">
-              N
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/25">
+              V
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
+            <span className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
               Vertex
             </span>
           </Link>
@@ -297,10 +301,28 @@ export default function RegisterPage() {
               />
             </div>
 
+            <div>
+              <Label htmlFor="dob" className="text-sm font-medium mb-1.5 block">
+                Date of Birth (Age Verification)
+              </Label>
+              <Input
+                id="dob"
+                name="dob"
+                type="date"
+                value={form.dob}
+                onChange={handleChange}
+                required
+                className="h-11 rounded-xl"
+              />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Vertex is 13+. Users under 18 will have restricted access.
+              </p>
+            </div>
+
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-11 rounded-xl bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white shadow-lg shadow-cyan-500/25"
+              className="w-full h-11 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-500/25"
             >
               {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Create Account
@@ -310,7 +332,7 @@ export default function RegisterPage() {
 
         <p className="text-center text-sm text-muted-foreground mt-6">
           Already have an account?{' '}
-          <Link href="/login" className="text-cyan-400 hover:text-cyan-300 font-medium">
+          <Link href="/login" className="text-indigo-400 hover:text-indigo-300 font-medium">
             Sign in
           </Link>
         </p>

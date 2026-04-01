@@ -16,19 +16,28 @@ export default withAuth(
       );
     }
 
-    // 2. Session Binding Guard (IP/Device Locking)
+    // 2. Admin Firewall Guard
+    // Hard-block ANY unauthorized entry to the /admin dashboard.
+    if (req.nextUrl.pathname.startsWith('/admin') && !token?.isAdmin) {
+      return NextResponse.redirect(new URL('/feed', req.url));
+    }
+
+    // 3. Session Binding Guard (IP/Device Locking)
     // In a production environment, we'd compare the token's initial IP/UA 
     // with the current request's headers. For now, we block malformed sessions.
     if (!token && isMutation && !req.nextUrl.pathname.startsWith('/api/auth/register')) {
-       return new NextResponse(
-        JSON.stringify({ error: 'Unauthorized: Session Fingerprint Mismatch' }),
-        { status: 401, headers: { 'content-type': 'application/json' } }
+       return NextResponse.json(
+        { error: 'Unauthorized: Session Fingerprint Mismatch' },
+        { status: 401 }
       );
     }
 
     return NextResponse.next();
   },
   {
+    callbacks: {
+      authorized: ({ token }) => !!token,
+    },
     pages: {
       signIn: '/login',
     },

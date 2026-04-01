@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { runQuery, runWriteQuery } from '@/lib/neo4j';
 import { v4 as uuidv4 } from 'uuid';
 import { uploadFile } from '@/lib/storage';
+import { isContentSafe } from '@/lib/moderation';
 
 export async function GET(req: NextRequest) {
   try {
@@ -273,6 +274,14 @@ export async function POST(req: NextRequest) {
 
     if (!content && (!images || images.length === 0) && !video) {
       return NextResponse.json({ error: 'Post must have content or media' }, { status: 400 });
+    }
+
+    // Vertex Airtight: Proactive Content Moderation
+    if (content) {
+      const moderation = isContentSafe(content);
+      if (!moderation.isSafe) {
+        return NextResponse.json({ error: moderation.reason }, { status: 422 });
+      }
     }
 
     const postId = uuidv4();
