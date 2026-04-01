@@ -1,92 +1,63 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Eye, EyeOff, Loader2, ArrowLeft, Mail, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
 
+/**
+ * Vertex 'Royal Premium' Register Page.
+ * Features: Framer Motion animations, Email verification display, and Indigo-Violet theme.
+ */
 export default function RegisterPage() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [otp, setOtp] = useState('');
   const [form, setForm] = useState({
     name: '',
     username: '',
     email: '',
     password: '',
-    confirmPassword: '',
     dob: '',
   });
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isOtpSent, setIsOtpSent] = useState(false);
-  const [otp, setOtp] = useState('');
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (form.password !== form.confirmPassword) {
-      toast.error('Passwords do not match');
-      return;
-    }
-
-    if (form.password.length < 8) {
-      toast.error('Password must be at least 8 characters');
-      return;
-    }
-
-    if (form.username.length < 3) {
-      toast.error('Username must be at least 3 characters');
-      return;
-    }
-
     setIsLoading(true);
 
     try {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: form.name,
-          username: form.username.toLowerCase().replace(/[^a-z0-9_]/g, ''),
-          email: form.email,
-          password: form.password,
-          dob: form.dob,
-        }),
+        body: JSON.stringify(form),
       });
 
       const data = await res.json();
 
-      if (!res.ok) {
+      if (res.ok) {
+        setIsOtpSent(true);
+        toast.success('Airtight verification code sent to your email.');
+      } else {
         toast.error(data.error || 'Registration failed');
-        return;
       }
-
-      toast.success('Account created! Please enter your OTP.');
-      setIsOtpSent(true);
-    } catch {
-      toast.error('Something went wrong');
+    } catch (error) {
+      toast.error('Network failure during registration.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleVerifyOtp = async (e: React.FormEvent) => {
+  const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp.length !== 6) {
-      toast.error('Please enter a valid 6-digit OTP');
-      return;
-    }
-
     setIsLoading(true);
+
     try {
       const res = await fetch('/api/auth/verify-otp', {
         method: 'POST',
@@ -94,28 +65,15 @@ export default function RegisterPage() {
         body: JSON.stringify({ email: form.email, otp }),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        toast.error(data.error || 'Invalid OTP');
-        return;
-      }
-
-      toast.success('Email verified! Signing in...');
-      
-      const result = await signIn('credentials', {
-        email: form.email,
-        password: form.password,
-        redirect: false,
-      });
-
-      if (result?.error) {
+      if (res.ok) {
+        toast.success('Account verified. Welcome to Vertex.');
         router.push('/login');
       } else {
-        router.push('/feed');
-        router.refresh();
+        const data = await res.json();
+        toast.error(data.error || 'Invalid verification code');
       }
-    } catch {
-      toast.error('Failed to verify OTP');
+    } catch (error) {
+      toast.error('Verification failed.');
     } finally {
       setIsLoading(false);
     }
@@ -123,220 +81,191 @@ export default function RegisterPage() {
 
   if (isOtpSent) {
     return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-gradient-to-br from-indigo-950/50 via-background to-violet-950/30">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
+      <div className="min-h-screen flex items-center justify-center px-4 bg-[#050508] relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-600/10 blur-[120px] rounded-full pointer-events-none" />
+        
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md relative z-10"
+        >
+          <div className="text-center mb-10">
             <Link href="/" className="inline-flex items-center gap-3">
               <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/25">
                 V
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">Vertex</span>
+              <span className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent italic">Vertex</span>
             </Link>
           </div>
-          <div className="rounded-2xl border border-border bg-card p-8 shadow-xl shadow-black/5">
-            <h1 className="text-2xl font-bold mb-1">Verify Email</h1>
-            <p className="text-muted-foreground text-sm mb-6">Enter the 6-digit code we sent to your email.</p>
-            <form onSubmit={handleVerifyOtp} className="space-y-4">
-              <div>
-                <Label htmlFor="otp" className="text-sm font-medium mb-1.5 block">Security Code</Label>
+
+          <div className="rounded-3xl border border-white/10 bg-black/40 backdrop-blur-xl p-8 shadow-2xl">
+            <div className="w-14 h-14 rounded-2xl bg-indigo-600/10 flex items-center justify-center text-indigo-400 mb-6 mx-auto">
+              <Mail className="w-7 h-7" />
+            </div>
+            
+            <h1 className="text-2xl font-bold mb-2 text-center">Verify Identity</h1>
+            <p className="text-slate-400 text-sm mb-8 text-center text-balance leading-relaxed">
+              We sent a professional security code to <br />
+              <span className="text-indigo-400 font-bold underline decoration-indigo-500/30 underline-offset-4">{form.email}</span>
+            </p>
+
+            <form onSubmit={handleOtpSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="otp" className="text-xs uppercase tracking-widest text-slate-500 font-bold ml-1">
+                  Security Code
+                </Label>
                 <Input
                   id="otp"
-                  maxLength={6}
                   value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
+                  onChange={(e) => setOtp(e.target.value)}
                   placeholder="123456"
                   required
-                  className="h-11 rounded-xl text-center text-lg tracking-widest"
+                  className="h-14 rounded-2xl text-center text-2xl tracking-[10px] font-bold bg-white/5 border-white/10 focus:border-indigo-500"
                 />
               </div>
-              <Button type="submit" disabled={isLoading} className="w-full h-11 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-500/25">
-                {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Verify Account
+              
+              <Button 
+                type="submit" 
+                disabled={isLoading} 
+                className="w-full h-14 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold shadow-xl shadow-indigo-500/20"
+              >
+                {isLoading && <Loader2 className="w-5 h-5 mr-3 animate-spin" />}
+                Authorize Connection
               </Button>
             </form>
+
+            <button 
+              onClick={() => setIsOtpSent(false)}
+              className="w-full mt-6 text-sm text-slate-500 hover:text-indigo-400 transition-colors flex items-center justify-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" /> Change Email
+            </button>
           </div>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-gradient-to-br from-cyan-950/50 via-background to-emerald-950/30">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
+    <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-[#050508] relative overflow-hidden">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-600/10 blur-[120px] rounded-full pointer-events-none" />
+
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="w-full max-w-md relative z-10"
+      >
+        <div className="text-center mb-10">
           <Link href="/" className="inline-flex items-center gap-3">
             <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/25">
               V
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
+            <span className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent italic tracking-tight">
               Vertex
             </span>
           </Link>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-8 shadow-xl shadow-black/5">
-          <h1 className="text-2xl font-bold mb-1">Create your account</h1>
-          <p className="text-muted-foreground text-sm mb-6">Join Vertex and connect with the world</p>
-
-          {/* OAuth Buttons */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            <Button
-              variant="outline"
-              onClick={() => signIn('google', { callbackUrl: '/feed' })}
-              className="h-11 rounded-xl"
-            >
-              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-              </svg>
-              Google
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => signIn('github', { callbackUrl: '/feed' })}
-              className="h-11 rounded-xl"
-            >
-              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-              GitHub
-            </Button>
+        <div className="rounded-3xl border border-white/10 bg-black/40 backdrop-blur-xl p-8 shadow-2xl">
+          <div className="flex items-center gap-2 text-indigo-400 mb-6">
+            <ShieldCheck className="w-5 h-5" />
+            <span className="text-xs font-bold uppercase tracking-widest">Airtight Registration</span>
           </div>
 
-          <div className="relative mb-6">
-            <Separator />
-            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-3 text-xs text-muted-foreground">
-              or sign up with email
-            </span>
-          </div>
+          <h1 className="text-3xl font-bold mb-2">Create Account</h1>
+          <p className="text-slate-400 text-sm mb-8">Join the private network built for integrity.</p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="name" className="text-sm font-medium mb-1.5 block">
-                  Full Name
-                </Label>
-                <Input
-                  id="name"
-                  name="name"
-                  value={form.name}
-                  onChange={handleChange}
-                  placeholder="John Doe"
-                  required
-                  className="h-11 rounded-xl"
-                />
-              </div>
-              <div>
-                <Label htmlFor="username" className="text-sm font-medium mb-1.5 block">
-                  Username
-                </Label>
-                <Input
-                  id="username"
-                  name="username"
-                  value={form.username}
-                  onChange={handleChange}
-                  placeholder="johndoe"
-                  required
-                  className="h-11 rounded-xl"
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="email" className="text-sm font-medium mb-1.5 block">
-                Email
-              </Label>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="name">Full Name</Label>
               <Input
-                id="email"
-                name="email"
-                type="email"
-                value={form.email}
-                onChange={handleChange}
-                placeholder="you@example.com"
+                id="name"
+                placeholder="Enter your name"
                 required
-                className="h-11 rounded-xl"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                className="h-11 rounded-xl bg-white/5 border-white/10"
               />
             </div>
 
-            <div>
-              <Label htmlFor="password" className="text-sm font-medium mb-1.5 block">
-                Password
-              </Label>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  placeholder="user123"
+                  required
+                  value={form.username}
+                  onChange={(e) => setForm({ ...form, username: e.target.value })}
+                  className="h-11 rounded-xl bg-white/5 border-white/10"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="dob">Date of Birth</Label>
+                <Input
+                  id="dob"
+                  type="date"
+                  required
+                  value={form.dob}
+                  onChange={(e) => setForm({ ...form, dob: e.target.value })}
+                  className="h-11 rounded-xl bg-white/5 border-white/10 block w-full"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@domain.social"
+                required
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                className="h-11 rounded-xl bg-white/5 border-white/10"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Security Password</Label>
               <div className="relative">
                 <Input
                   id="password"
-                  name="password"
                   type={showPassword ? 'text' : 'password'}
-                  value={form.password}
-                  onChange={handleChange}
                   placeholder="••••••••"
                   required
-                  minLength={8}
-                  className="h-11 rounded-xl pr-10"
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  className="h-11 rounded-xl pr-10 bg-white/5 border-white/10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-            </div>
-
-            <div>
-              <Label htmlFor="confirmPassword" className="text-sm font-medium mb-1.5 block">
-                Confirm Password
-              </Label>
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                value={form.confirmPassword}
-                onChange={handleChange}
-                placeholder="••••••••"
-                required
-                className="h-11 rounded-xl"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="dob" className="text-sm font-medium mb-1.5 block">
-                Date of Birth (Age Verification)
-              </Label>
-              <Input
-                id="dob"
-                name="dob"
-                type="date"
-                value={form.dob}
-                onChange={handleChange}
-                required
-                className="h-11 rounded-xl"
-              />
-              <p className="text-[10px] text-muted-foreground mt-1">
-                Vertex is 13+. Users under 18 will have restricted access.
-              </p>
             </div>
 
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-11 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-500/25"
+              className="w-full h-12 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold shadow-xl shadow-indigo-500/20 mt-4 transition-all"
             >
-              {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Create Account
+              {isLoading && <Loader2 className="w-5 h-5 mr-3 animate-spin" />}
+              Begin Initialization
             </Button>
           </form>
-        </div>
 
-        <p className="text-center text-sm text-muted-foreground mt-6">
-          Already have an account?{' '}
-          <Link href="/login" className="text-indigo-400 hover:text-indigo-300 font-medium">
-            Sign in
-          </Link>
-        </p>
-      </div>
+          <p className="text-center text-sm text-slate-500 mt-8">
+            Already a member?{' '}
+            <Link href="/login" className="text-indigo-400 hover:text-indigo-300 font-bold transition-colors">
+              Access Vault
+            </Link>
+          </p>
+        </div>
+      </motion.div>
     </div>
   );
 }

@@ -16,9 +16,38 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Vertex — Social Network",
-  description: "Connect, share, and discover. A modern social network built with Next.js and Neo4j.",
-  keywords: ["social network", "connect", "share", "posts", "messaging"],
+  title: {
+    default: "Vertex — Private Social Network",
+    template: "%s | Vertex"
+  },
+  description: "Connect with Airtight integrity. Vertex is a high-security, private social platform for verified digital lives.",
+  keywords: ["social network", "security", "privacy", "vertex", "encrypted", "airtight"],
+  authors: [{ name: "Vertex Security Team" }],
+  creator: "Vertex Social Alpha",
+  verification: {
+    google: "vertex-verification-token",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://vertex.social",
+    siteName: "Vertex",
+    title: "Vertex — Connect with Integrity",
+    description: "A secure, private, and premium social platform.",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Vertex Logo" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Vertex — Private Social Network",
+    description: "Maximum Security Social Networking.",
+    images: ["/og-image.png"],
+  },
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({
