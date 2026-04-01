@@ -40,7 +40,7 @@ export default function FeedPage() {
   return (
     <div className="max-w-[600px] mx-auto space-y-4">
       <h1 className="text-2xl font-bold mb-4">
-        <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">Home Feed</span>
+        <span className="bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">Home Feed</span>
       </h1>
 
       <CreatePost onPostCreated={() => loadPosts()} />
@@ -76,7 +76,7 @@ export default function FeedPage() {
             <button
               onClick={() => loadPosts(cursor, true)}
               disabled={loadingMore}
-              className="w-full py-3 text-sm text-violet-400 hover:text-violet-300 font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-3 text-sm text-cyan-400 hover:text-cyan-300 font-medium flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loadingMore && <Loader2 className="w-4 h-4 animate-spin" />}
               {loadingMore ? 'Loading…' : 'Load more'}
@@ -89,7 +89,7 @@ export default function FeedPage() {
           <p className="text-lg font-semibold">Your feed is empty</p>
           <p className="text-muted-foreground text-sm max-w-xs mx-auto">
             Start by creating a post above, or{' '}
-            <Link href="/explore" className="text-violet-400 hover:underline">
+            <Link href="/explore" className="text-cyan-400 hover:underline">
               explore
             </Link>{' '}
             and follow some users to see their content here.

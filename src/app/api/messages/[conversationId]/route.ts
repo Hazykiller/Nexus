@@ -6,6 +6,7 @@ import { getPusherServer, channels, events } from '@/lib/pusher';
 import { v4 as uuidv4 } from 'uuid';
 
 import { encryptMessage, decryptMessage } from '@/lib/encryption';
+import { logSecurityEvent } from '@/lib/security';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ conversationId: string }> }) {
   try {
@@ -46,9 +47,17 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ conv
       const senderData = r.sender as Record<string, unknown>;
       delete senderData.password;
 
+      const decrypted = msg.content ? decryptMessage(msg.content as string) : '{}';
+      let parsed = { content: '', mediaUrl: '', sharedPostId: '' };
+      try {
+        parsed = JSON.parse(decrypted);
+      } catch (e) {
+        parsed = { content: decrypted, mediaUrl: '', sharedPostId: '' }; // legacy fallback
+      }
+
       return {
         ...msg,
-        content: msg.content ? decryptMessage(msg.content as string) : '',
+        ...parsed,
         sender: senderData,
       };
     });
@@ -66,22 +75,50 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ con
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const userId = (session.user as Record<string, unknown>).id as string;
+    const isVerified = (session.user as Record<string, unknown>).verified as boolean;
 
-    const { content, mediaUrl, mediaType } = await req.json();
-    if (!content && !mediaUrl) {
+    if (!isVerified) {
+      return NextResponse.json({ error: 'Verification required to send direct messages' }, { status: 403 });
+    }
+
+    const { content, mediaUrl, mediaType, sharedPostId } = await req.json();
+    if (!content && !mediaUrl && !sharedPostId) {
       return NextResponse.json({ error: 'Message cannot be empty' }, { status: 400 });
     }
 
-    // Verify participation
+    // Verify participation AND Privacy Rules
     const verify = await runQuery(
-      `MATCH (u:User {id: $userId})-[:PARTICIPATES_IN]->(c:Conversation {id: $conversationId})
-       RETURN c LIMIT 1`,
+      `MATCH (me:User {id: $userId})
+       MATCH (c:Conversation {id: $conversationId})<-[:PARTICIPATES_IN]-(other:User)
+       WHERE other.id <> $userId
+       WITH me, c, other
+       // Check if IT IS a conversation I participate in
+       MATCH (me)-[:PARTICIPATES_IN]->(c)
+       WITH me, c, other
+       // Privacy Logic: If other is private, I MUST follow them to message
+       OPTIONAL MATCH (me)-[f:FOLLOWS]->(other)
+       RETURN other.privacy as otherPrivacy, f IS NOT NULL as isFollowing LIMIT 1`,
       { userId, conversationId }
     );
+
     if (!verify.length) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
+    const { otherPrivacy, isFollowing } = verify[0] as any;
+    if (otherPrivacy === 'private' && !isFollowing) {
+       await logSecurityEvent(
+         'forbidden_action',
+         `Attempted message to private profile ${conversationId} without follow relationship`,
+         userId
+       );
+       return NextResponse.json({ 
+         error: 'This account is private. You must follow them to send messages.' 
+       }, { status: 403 });
+    }
+
     const messageId = uuidv4();
-    const encryptedContent = content ? encryptMessage(content) : '';
+    // Vertex Airtight: Encrypt the entire metadata bundle if it contains sensitive info
+    const payload = JSON.stringify({ content, mediaUrl, sharedPostId });
+    const encryptedPayload = encryptMessage(payload);
 
     // Create message and attach to conversation
     const writeResult = await runQuery(
@@ -102,9 +139,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ con
         userId,
         conversationId,
         messageId,
-        content: encryptedContent,
-        mediaUrl: mediaUrl || '',
-        mediaType: mediaType || '',
+        content: encryptedPayload,
+        mediaType: mediaType || 'text',
       }
     );
 

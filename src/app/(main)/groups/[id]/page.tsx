@@ -38,7 +38,7 @@ export default function GroupPage() {
     <div className="max-w-[600px] mx-auto space-y-4">
       {/* Group Header */}
       <div className="rounded-2xl border border-border bg-card overflow-hidden">
-        <div className="h-36 bg-gradient-to-br from-violet-600/20 to-fuchsia-600/20">
+        <div className="h-36 bg-gradient-to-br from-cyan-600/20 to-emerald-600/20">
           {group.coverImage && <img src={group.coverImage} alt="" className="w-full h-full object-cover" />}
         </div>
         <div className="p-4">

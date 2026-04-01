@@ -38,10 +38,10 @@ export default function GroupsPage() {
     <div className="max-w-[600px] mx-auto">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">
-          <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">Groups</span>
+          <span className="bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">Groups</span>
         </h1>
         <Link href="/groups/create">
-          <Button size="sm" className="rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white gap-1.5">
+          <Button size="sm" className="rounded-full bg-gradient-to-r from-cyan-600 to-emerald-600 text-white gap-1.5">
             <Plus className="w-4 h-4" /> Create
           </Button>
         </Link>
@@ -54,8 +54,8 @@ export default function GroupsPage() {
           ))
         ) : groups.length > 0 ? (
           groups.map((group) => (
-            <Card key={group.id} className="rounded-2xl border border-border overflow-hidden hover:border-violet-500/20 transition-colors">
-              <div className="h-24 bg-gradient-to-br from-violet-600/20 to-fuchsia-600/20 relative">
+            <Card key={group.id} className="rounded-2xl border border-border overflow-hidden hover:border-cyan-500/20 transition-colors">
+              <div className="h-24 bg-gradient-to-br from-cyan-600/20 to-emerald-600/20 relative">
                 {group.coverImage && <img src={group.coverImage} alt="" className="w-full h-full object-cover" />}
               </div>
               <div className="p-4 -mt-6 relative z-10">
@@ -79,7 +79,7 @@ export default function GroupsPage() {
                     onClick={() => handleJoinLeave(group.id, group.isMember)}
                     size="sm"
                     variant={group.isMember ? 'outline' : 'default'}
-                    className={`rounded-full text-xs shrink-0 ${!group.isMember ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white' : ''}`}
+                    className={`rounded-full text-xs shrink-0 ${!group.isMember ? 'bg-gradient-to-r from-cyan-600 to-emerald-600 text-white' : ''}`}
                   >
                     {group.isMember ? 'Leave' : 'Join'}
                   </Button>

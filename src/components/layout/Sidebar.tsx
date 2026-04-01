@@ -52,11 +52,11 @@ export function Sidebar() {
       {/* Logo */}
       <div className="flex items-center h-16 px-4 xl:px-6">
         <Link href="/feed" className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white font-bold text-lg shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center text-white font-bold text-lg shrink-0">
             N
           </div>
-          <span className="text-xl font-bold bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent hidden xl:block">
-            Nexus
+          <span className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent hidden xl:block">
+            Vertex
           </span>
         </Link>
       </div>
@@ -73,20 +73,20 @@ export function Sidebar() {
               className={cn(
                 'flex items-center gap-4 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 group',
                 isActive
-                  ? 'bg-gradient-to-r from-violet-500/15 to-fuchsia-500/15 text-violet-400'
+                  ? 'bg-gradient-to-r from-cyan-500/15 to-emerald-500/15 text-cyan-400'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted'
               )}
             >
               <item.icon
                 className={cn(
                   'w-6 h-6 shrink-0 transition-transform group-hover:scale-110',
-                  isActive && 'text-violet-400'
+                  isActive && 'text-cyan-400'
                 )}
                 strokeWidth={isActive ? 2.5 : 2}
               />
               <span className="hidden xl:block">{item.label}</span>
               {isActive && (
-                <div className="w-1.5 h-1.5 rounded-full bg-violet-400 ml-auto hidden xl:block" />
+                <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 ml-auto hidden xl:block" />
               )}
             </Link>
           );
@@ -97,7 +97,7 @@ export function Sidebar() {
           <DialogTrigger render={
             <Button
               variant="default"
-              className="flex items-center gap-4 px-3 py-3 h-auto rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white mt-2 justify-start xl:justify-start"
+              className="flex items-center gap-4 px-3 py-3 h-auto rounded-xl bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white mt-2 justify-start xl:justify-start"
               title="Create Post"
             >
               <PlusSquare className="w-6 h-6 shrink-0" />
@@ -139,9 +139,9 @@ export function Sidebar() {
               pathname.includes('/profile') && 'bg-muted'
             )}
           >
-            <Avatar className="w-8 h-8 shrink-0 ring-2 ring-violet-500/30">
+            <Avatar className="w-8 h-8 shrink-0 ring-2 ring-cyan-500/30">
               <AvatarImage src={user.image} alt={user.name} />
-              <AvatarFallback className="bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-xs">
+              <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-emerald-500 text-white text-xs">
                 {user.name?.charAt(0)?.toUpperCase()}
               </AvatarFallback>
             </Avatar>

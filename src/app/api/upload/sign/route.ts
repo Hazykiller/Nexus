@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
     const paramsToSign: Record<string, string> = {
       timestamp,
-      folder: folder || 'nexus',
+      folder: folder || 'vertex',
     };
 
     const signature = generateSignature(paramsToSign);
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
         timestamp,
         cloudName: process.env.CLOUDINARY_CLOUD_NAME,
         apiKey: process.env.CLOUDINARY_API_KEY,
-        folder: folder || 'nexus',
+        folder: folder || 'vertex',
         uploadUrl: getUploadUrl(),
       },
     });

@@ -20,6 +20,7 @@ export interface User {
   isFollowing?: boolean;
   isBlocked?: boolean;
   isFollowedBy?: boolean;
+  isCloseFriend?: boolean;
   online?: boolean;
 }
 
@@ -29,7 +30,7 @@ export interface Post {
   images: string[];
   video?: string;
   location?: string;
-  visibility: 'public' | 'followers' | 'private';
+  visibility: 'public' | 'followers' | 'private' | 'close_friends';
   createdAt: string;
   updatedAt: string;
   author: User;

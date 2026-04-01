@@ -27,14 +27,14 @@ export default function SettingsPage() {
   return (
     <div className="max-w-[500px] mx-auto">
       <h1 className="text-2xl font-bold mb-6">
-        <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">Settings</span>
+        <span className="bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">Settings</span>
       </h1>
 
       <div className="space-y-4">
         {/* Appearance */}
         <Card className="rounded-2xl p-4">
           <div className="flex items-center gap-3 mb-3">
-            {theme === 'dark' ? <Moon className="w-5 h-5 text-violet-400" /> : <Sun className="w-5 h-5 text-yellow-500" />}
+            {theme === 'dark' ? <Moon className="w-5 h-5 text-cyan-400" /> : <Sun className="w-5 h-5 text-yellow-500" />}
             <Label className="font-semibold">Appearance</Label>
           </div>
           <div className="flex gap-2">
@@ -46,7 +46,7 @@ export default function SettingsPage() {
         {/* Privacy */}
         <Card className="rounded-2xl p-4">
           <div className="flex items-center gap-3 mb-3">
-            <Shield className="w-5 h-5 text-violet-400" />
+            <Shield className="w-5 h-5 text-cyan-400" />
             <Label className="font-semibold">Privacy</Label>
           </div>
           <p className="text-sm text-muted-foreground">Manage who can see your profile and posts. Visit Edit Profile to change your privacy setting.</p>
@@ -55,7 +55,7 @@ export default function SettingsPage() {
         {/* Notifications */}
         <Card className="rounded-2xl p-4">
           <div className="flex items-center gap-3 mb-3">
-            <Bell className="w-5 h-5 text-violet-400" />
+            <Bell className="w-5 h-5 text-cyan-400" />
             <Label className="font-semibold">Notification Preferences</Label>
           </div>
           <p className="text-sm text-muted-foreground">Notification preferences coming soon. You will be able to toggle individual notification types.</p>

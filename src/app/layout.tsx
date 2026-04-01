@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Nexus — Social Network",
+  title: "Vertex — Social Network",
   description: "Connect, share, and discover. A modern social network built with Next.js and Neo4j.",
   keywords: ["social network", "connect", "share", "posts", "messaging"],
 };

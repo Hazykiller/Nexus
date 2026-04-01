@@ -22,6 +22,8 @@ export default function RegisterPage() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [otp, setOtp] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -66,7 +68,38 @@ export default function RegisterPage() {
         return;
       }
 
-      toast.success('Account created! Signing in...');
+      toast.success('Account created! Please enter your OTP.');
+      setIsOtpSent(true);
+    } catch {
+      toast.error('Something went wrong');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otp.length !== 6) {
+      toast.error('Please enter a valid 6-digit OTP');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email, otp }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || 'Invalid OTP');
+        return;
+      }
+
+      toast.success('Email verified! Signing in...');
+      
       const result = await signIn('credentials', {
         email: form.email,
         password: form.password,
@@ -80,30 +113,67 @@ export default function RegisterPage() {
         router.refresh();
       }
     } catch {
-      toast.error('Something went wrong');
+      toast.error('Failed to verify OTP');
     } finally {
       setIsLoading(false);
     }
   };
 
+  if (isOtpSent) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-gradient-to-br from-cyan-950/50 via-background to-emerald-950/30">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <Link href="/" className="inline-flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-cyan-500/25">N</div>
+              <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">Vertex</span>
+            </Link>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-8 shadow-xl shadow-black/5">
+            <h1 className="text-2xl font-bold mb-1">Verify Email</h1>
+            <p className="text-muted-foreground text-sm mb-6">Enter the 6-digit code we sent to your email.</p>
+            <form onSubmit={handleVerifyOtp} className="space-y-4">
+              <div>
+                <Label htmlFor="otp" className="text-sm font-medium mb-1.5 block">Security Code</Label>
+                <Input
+                  id="otp"
+                  maxLength={6}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
+                  placeholder="123456"
+                  required
+                  className="h-11 rounded-xl text-center text-lg tracking-widest"
+                />
+              </div>
+              <Button type="submit" disabled={isLoading} className="w-full h-11 rounded-xl bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white shadow-lg shadow-cyan-500/25">
+                {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Verify Account
+              </Button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-gradient-to-br from-violet-950/50 via-background to-fuchsia-950/30">
+    <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-gradient-to-br from-cyan-950/50 via-background to-emerald-950/30">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-violet-500/25">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-cyan-500/25">
               N
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
-              Nexus
+            <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
+              Vertex
             </span>
           </Link>
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-8 shadow-xl shadow-black/5">
           <h1 className="text-2xl font-bold mb-1">Create your account</h1>
-          <p className="text-muted-foreground text-sm mb-6">Join Nexus and connect with the world</p>
+          <p className="text-muted-foreground text-sm mb-6">Join Vertex and connect with the world</p>
 
           {/* OAuth Buttons */}
           <div className="grid grid-cols-2 gap-3 mb-6">
@@ -230,7 +300,7 @@ export default function RegisterPage() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-11 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-lg shadow-violet-500/25"
+              className="w-full h-11 rounded-xl bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white shadow-lg shadow-cyan-500/25"
             >
               {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Create Account
@@ -240,7 +310,7 @@ export default function RegisterPage() {
 
         <p className="text-center text-sm text-muted-foreground mt-6">
           Already have an account?{' '}
-          <Link href="/login" className="text-violet-400 hover:text-violet-300 font-medium">
+          <Link href="/login" className="text-cyan-400 hover:text-cyan-300 font-medium">
             Sign in
           </Link>
         </p>

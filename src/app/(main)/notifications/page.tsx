@@ -17,10 +17,10 @@ interface ExtendedNotification extends Notification {
 const typeIcons: Record<string, React.ReactNode> = {
   like: <Heart className="w-4 h-4 text-red-400" />,
   comment: <MessageCircle className="w-4 h-4 text-blue-400" />,
-  follow: <UserPlus className="w-4 h-4 text-violet-400" />,
+  follow: <UserPlus className="w-4 h-4 text-cyan-400" />,
   mention: <AtSign className="w-4 h-4 text-orange-400" />,
   share: <Share2 className="w-4 h-4 text-green-400" />,
-  story_view: <Eye className="w-4 h-4 text-fuchsia-400" />,
+  story_view: <Eye className="w-4 h-4 text-emerald-400" />,
   group_invite: <Users className="w-4 h-4 text-cyan-400" />,
   reaction: <Heart className="w-4 h-4 text-pink-400" />,
 };
@@ -80,10 +80,10 @@ export default function NotificationsPage() {
     <div className="max-w-[600px] mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">
-          <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">Follow Requests</span>
+          <span className="bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">Follow Requests</span>
         </h1>
         {notifications.some((n) => !n.read) && (
-          <Button variant="ghost" size="sm" className="text-xs text-violet-400" onClick={markAllRead}>
+          <Button variant="ghost" size="sm" className="text-xs text-cyan-400" onClick={markAllRead}>
             <CheckCheck className="w-4 h-4 mr-1" /> Mark all read
           </Button>
         )}
@@ -104,14 +104,14 @@ export default function NotificationsPage() {
           notifications.map((n) => (
             <div
               key={n.id}
-              className={`flex items-center gap-4 p-4 rounded-2xl transition-all border border-transparent hover:border-violet-500/10 ${
-                n.read ? 'bg-card/50' : 'bg-violet-500/5 border-violet-500/10'
+              className={`flex items-center gap-4 p-4 rounded-2xl transition-all border border-transparent hover:border-cyan-500/10 ${
+                n.read ? 'bg-card/50' : 'bg-cyan-500/5 border-cyan-500/10'
               }`}
             >
               <Link href={`/profile/${n.actor?.username}`}>
-                <Avatar className="w-12 h-12 shrink-0 ring-2 ring-transparent group-hover:ring-violet-500/30 transition-all">
+                <Avatar className="w-12 h-12 shrink-0 ring-2 ring-transparent group-hover:ring-cyan-500/30 transition-all">
                   <AvatarImage src={n.actor?.avatar} />
-                  <AvatarFallback className="bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-sm">
+                  <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-emerald-500 text-white text-sm">
                     {n.actor?.name?.charAt(0)?.toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
@@ -132,13 +132,13 @@ export default function NotificationsPage() {
 
               <div className="flex items-center gap-2">
                 {followingIds.has(n.actor?.id!) ? (
-                  <Button variant="outline" size="sm" disabled className="text-[11px] h-8 rounded-full border-violet-500/20 text-violet-400">
+                  <Button variant="outline" size="sm" disabled className="text-[11px] h-8 rounded-full border-cyan-500/20 text-cyan-400">
                     Following
                   </Button>
                 ) : (
                   <Button
                     size="sm"
-                    className="text-[11px] h-8 px-4 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white hover:opacity-90 shadow-md shadow-violet-500/10"
+                    className="text-[11px] h-8 px-4 rounded-full bg-gradient-to-r from-cyan-600 to-emerald-600 text-white hover:opacity-90 shadow-md shadow-cyan-500/10"
                     onClick={() => handleFollowBack(n.actor?.id!)}
                   >
                     Accept & Follow Back
@@ -149,8 +149,8 @@ export default function NotificationsPage() {
           ))
         ) : (
           <div className="text-center py-24 bg-card/30 rounded-3xl border border-dashed border-border/50">
-            <div className="w-16 h-16 bg-violet-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <UserPlus className="w-8 h-8 text-violet-400/50" />
+            <div className="w-16 h-16 bg-cyan-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <UserPlus className="w-8 h-8 text-cyan-400/50" />
             </div>
             <p className="text-lg font-semibold mb-1">No pending requests</p>
             <p className="text-muted-foreground text-sm px-10">

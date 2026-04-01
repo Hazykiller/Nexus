@@ -23,19 +23,24 @@ export async function GET(req: NextRequest) {
     if (type === 'home') {
       cypher = `
         MATCH (me:User {id: $userId})
-        OPTIONAL MATCH (me)-[:FOLLOWS]->(followed:User)
-        WITH me, COLLECT(DISTINCT followed.id) AS followedIds
         MATCH (author:User)-[:CREATED]->(p:Post)
         WHERE (
-          p.visibility = 'public'
-          OR (
-            (:User {id: $userId})-[:FOLLOWS]->(author)
-            AND (author)-[:FOLLOWS]->(:User {id: $userId})
-            AND (p.visibility = 'private' OR p.visibility IS NULL)
-          )
-          OR (author.id = $userId)
+          (me)-[:FOLLOWS]->(author) 
+          OR (me)-[:CLOSE_FRIEND]->(author)
+          OR author.id = $userId
+        )
+        // Close Friends visibility constraint
+        AND (
+          p.visibility <> 'close_friends' 
+          OR (p.visibility = 'close_friends' AND (author.id = $userId OR (author)-[:CLOSE_FRIEND]->(me)))
+        )
+        // Private post constraint if just simple following
+        AND (
+          p.visibility <> 'private'
+          OR (p.visibility = 'private' AND (author.id = $userId OR (author)-[:FOLLOWS]->(me)))
         )
         AND NOT (me)-[:BLOCKED]->(author) AND NOT (author)-[:BLOCKED]->(me)
+        
         OPTIONAL MATCH (p)<-[likes:LIKES]-()
         OPTIONAL MATCH (p)<-[reacts:REACTED]-()
         OPTIONAL MATCH (p)<-[:CREATED]-(cm:Comment)
@@ -134,10 +139,32 @@ export async function GET(req: NextRequest) {
         ORDER BY s.createdAt DESC
         SKIP toInteger($cursor) LIMIT toInteger($limit)`;
     } else {
-      // Explore: trending public posts
+      // Explore Algorithm (Collaborative Filtering + Cold Start Rules)
       cypher = `
+        MATCH (me:User {id: $userId})
+        
+        // Discover Collaborative Filter Vectors
+        OPTIONAL MATCH (me)-[:LIKES]->(:Post)-[:HAS_TAG]->(likedTag:Hashtag)
+        WITH me, COLLECT(DISTINCT likedTag) as likedTags
+        OPTIONAL MATCH (me)-[:FOLLOWS]->(:User)-[:FOLLOWS]->(f2:User)
+        WITH me, likedTags, COLLECT(DISTINCT f2) as f2s
+        
         MATCH (author:User)-[:CREATED]->(p:Post)
         WHERE p.visibility = 'public'
+        AND author <> me
+        AND NOT (me)-[:BLOCKED]-(author)
+        
+        // Calculate Proximity Scores
+        OPTIONAL MATCH (p)-[:HAS_TAG]->(t:Hashtag)
+        WITH p, author, likedTags, f2s,
+             CASE WHEN t IN likedTags THEN 10 ELSE 0 END as tagScore,
+             CASE WHEN author IN f2s THEN 15 ELSE 0 END as networkScore
+             
+        WITH p, author, MAX(tagScore) + MAX(networkScore) as algoScore, size(likedTags) as likedTagsSize, size(f2s) as f2sSize
+        
+        // Cold Start Validation
+        WHERE (likedTagsSize = 0 AND f2sSize = 0) OR algoScore > 0
+
         OPTIONAL MATCH (p)<-[likes:LIKES]-()
         OPTIONAL MATCH (p)<-[reacts:REACTED]-()
         OPTIONAL MATCH (p)<-[:CREATED]-(cm:Comment)
@@ -146,7 +173,7 @@ export async function GET(req: NextRequest) {
         OPTIONAL MATCH (me2:User {id: $userId})-[myReact:REACTED]->(p)
         OPTIONAL MATCH (me3:User {id: $userId})-[mySave:SAVED]->(p)
         OPTIONAL MATCH (p)-[:HAS_TAG]->(tag:Hashtag)
-        WITH p, author,
+        WITH p, author, algoScore,
              COUNT(DISTINCT likes) + COUNT(DISTINCT reacts) AS likeCount,
              COUNT(DISTINCT cm) AS commentCount,
              COUNT(DISTINCT shared) AS shareCount,
@@ -155,7 +182,7 @@ export async function GET(req: NextRequest) {
              mySave IS NOT NULL AS isSaved,
              COLLECT(DISTINCT tag.name) AS hashtags
         RETURN p, author, likeCount, commentCount, shareCount, isLiked, myReaction, isSaved, hashtags
-        ORDER BY likeCount DESC, p.createdAt DESC
+        ORDER BY algoScore DESC, likeCount DESC, p.createdAt DESC
         SKIP toInteger($cursor) LIMIT toInteger($limit)`;
     }
 
@@ -198,6 +225,11 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const userId = (session.user as Record<string, unknown>).id as string;
+    const isVerified = (session.user as Record<string, unknown>).verified as boolean;
+
+    if (!isVerified) {
+      return NextResponse.json({ error: 'Account verification required to post content' }, { status: 403 });
+    }
 
     const contentType = req.headers.get('content-type') || '';
     console.log('--- POST /api/posts DEBUG ---');

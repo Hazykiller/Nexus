@@ -70,11 +70,11 @@ export default function MessagesPage() {
     <div className="max-w-[600px] mx-auto">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">
-          <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">Messages</span>
+          <span className="bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">Messages</span>
         </h1>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger render={
-            <button onClick={openNewMessage} className="w-9 h-9 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-400 hover:bg-violet-500/20 transition-colors">
+            <button onClick={openNewMessage} className="w-9 h-9 rounded-full bg-cyan-500/10 flex items-center justify-center text-cyan-400 hover:bg-cyan-500/20 transition-colors">
               <MessageSquarePlus className="w-5 h-5" />
             </button>
           } />
@@ -84,7 +84,7 @@ export default function MessagesPage() {
             </DialogHeader>
             <div className="py-4 space-y-3 max-h-[60vh] overflow-y-auto">
               {loadingUsers ? (
-                <div className="flex justify-center p-4"><div className="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" /></div>
+                <div className="flex justify-center p-4"><div className="w-6 h-6 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" /></div>
               ) : suggestedUsers.length > 0 ? (
                 suggestedUsers.map((u) => (
                   <button
@@ -94,7 +94,7 @@ export default function MessagesPage() {
                   >
                     <Avatar className="w-10 h-10">
                       <AvatarImage src={u.avatar} />
-                      <AvatarFallback className="bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white">
+                      <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-emerald-500 text-white">
                         {u.name?.charAt(0)?.toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
@@ -142,9 +142,9 @@ export default function MessagesPage() {
                 href={`/messages/${conv.id}`}
                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors"
               >
-                <Avatar className="w-12 h-12 ring-2 ring-violet-500/20">
+                <Avatar className="w-12 h-12 ring-2 ring-cyan-500/20">
                   <AvatarImage src={other?.avatar as string} />
-                  <AvatarFallback className="bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white">
+                  <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-emerald-500 text-white">
                     {(other?.name as string)?.charAt(0)?.toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
@@ -162,7 +162,7 @@ export default function MessagesPage() {
                   </p>
                 </div>
                 {conv.unreadCount > 0 && (
-                  <div className="w-5 h-5 rounded-full bg-violet-500 text-white text-[10px] flex items-center justify-center shrink-0">
+                  <div className="w-5 h-5 rounded-full bg-cyan-500 text-white text-[10px] flex items-center justify-center shrink-0">
                     {conv.unreadCount}
                   </div>
                 )}

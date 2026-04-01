@@ -10,19 +10,19 @@ export default async function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Left Hero Section */}
-      <div className="flex-1 flex flex-col justify-center px-8 py-12 lg:px-16 xl:px-24 bg-gradient-to-br from-violet-950 via-background to-fuchsia-950/30">
+      <div className="flex-1 flex flex-col justify-center px-8 py-12 lg:px-16 xl:px-24 bg-gradient-to-br from-cyan-950 via-background to-emerald-950/30">
         <div className="max-w-lg">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-violet-500/25">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-cyan-500/25">
               N
             </div>
-            <span className="text-3xl font-bold bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
-              Nexus
+            <span className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
+              Vertex
             </span>
           </div>
           <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-6">
             Connect with the{' '}
-            <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-cyan-400 via-emerald-400 to-pink-400 bg-clip-text text-transparent">
               world around you
             </span>
           </h1>
@@ -32,11 +32,11 @@ export default async function LandingPage() {
           </p>
           <div className="flex flex-wrap gap-6 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-violet-400" />
+              <div className="w-2 h-2 rounded-full bg-cyan-400" />
               Real-time messaging
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-fuchsia-400" />
+              <div className="w-2 h-2 rounded-full bg-emerald-400" />
               Rich media sharing
             </div>
             <div className="flex items-center gap-2">
@@ -56,7 +56,7 @@ export default async function LandingPage() {
           <div className="space-y-4">
             <Link
               href="/register"
-              className="flex items-center justify-center w-full h-12 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-medium transition-all shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40"
+              className="flex items-center justify-center w-full h-12 rounded-xl bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-medium transition-all shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40"
             >
               Create Account
             </Link>

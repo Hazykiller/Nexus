@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Vertex — Premium Airtight Social Network
 
-## Getting Started
+Vertex is a production-ready, highly secure social network built with **Next.js**, **Neo4j**, and **Pusher**. Designed with a privacy-first philosophy, it features military-grade encryption and a "real-life" collaborative algorithmic feed.
 
-First, run the development server:
+## 💎 Core Features
 
+### 🛡️ Airtight Security Architecture
+- **At-Rest Encryption**: Sensitive user metadata (Emails, Login info) is cryptographically secured before database persistence.
+- **Session Fingerprinting**: Sessions are bound to **IP/Device User-Agents** to neutralize session hijacking.
+- **Global Middleware Guard**: Every mutation is intercepted and blocked for unverified or unauthenticated users.
+- **Argon2/BCrypt Hashing**: Standard-setting hashing for all authentication credentials.
+
+### 🔐 Multi-Layer Privacy
+- **E2EE Messaging**: Full End-to-End Encryption for personal DMs and Group chats (including shared pictures and posts).
+- **Public/Private Profiles**: Granular visibility controls for user profiles and content.
+- **Close Friends Tier**: Post visibility limited to exclusive "Close Friend" circles.
+
+### 🧠 Collaborative Algorithmic Feed
+- **"Real-Life" Discovery**: Explore feed recommends content based on Shared Interests and Network Proximity (Friends of Friends).
+- **Trending Intelligence**: Automatic fallback to global trending posts for new users.
+
+## 🚀 Quick Start
+
+### 1. Prerequisites
+- **Neo4j AuraDB** (or a local Neo4j instance)
+- **Cloudinary** (for secure media storage)
+- **Pusher** (for real-time messaging)
+
+### 2. Environment Variables
+Rename `.env.example` to `.env` and fill in your airtight credentials.
+
+### 3. Install & Run
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🏗️ Architecture & Stack
+- **Frontend**: Next.js 15 (App Router), Tailwind CSS, Lucide Icons.
+- **Backend**: Next.js API Routes, Neo4j (Cypher Query Language).
+- **Security**: AES-256-GCM, Web Crypto API.
+- **Infrastructure**: Vercel (Deployment), Cloudinary (Media).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+**Vertex — Connect with Airtight Integrity.**

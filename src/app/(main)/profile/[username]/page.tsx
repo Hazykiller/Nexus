@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ import {
   Grid3X3,
   Bookmark,
   Heart,
+  Star,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -46,6 +48,7 @@ export default function ProfilePage() {
   const [loadingLikes, setLoadingLikes] = useState(false);
   const [loadingSaved, setLoadingSaved] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [isCloseFriend, setIsCloseFriend] = useState(false);
   const [activeTab, setActiveTab] = useState('posts');
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
@@ -69,6 +72,7 @@ export default function ProfilePage() {
         if (userRes.success) {
           setProfile(userRes.data);
           setIsFollowing(userRes.data.isFollowing);
+          setIsCloseFriend(userRes.data.isCloseFriend);
           setFollowersCount(userRes.data.followersCount || 0);
           setFollowingCount(userRes.data.followingCount || 0);
         }
@@ -130,6 +134,22 @@ export default function ProfilePage() {
     }
   };
 
+  const toggleCloseFriend = async () => {
+    if (!profile) return;
+    const wasCloseFriend = isCloseFriend;
+    setIsCloseFriend(!wasCloseFriend);
+    try {
+      const res = await fetch(`/api/users/${profile.id}/close-friend`, {
+        method: wasCloseFriend ? 'DELETE' : 'POST'
+      });
+      if (!res.ok) throw new Error();
+      toast.success(wasCloseFriend ? 'Removed from Close Friends' : 'Added to Close Friends');
+    } catch {
+      setIsCloseFriend(wasCloseFriend);
+      toast.error('Failed to update Close Friends');
+    }
+  };
+
   if (loading) {
     return (
       <div className="max-w-[600px] mx-auto space-y-4">
@@ -157,7 +177,7 @@ export default function ProfilePage() {
   return (
     <div className="max-w-[600px] mx-auto">
       {/* Cover Photo */}
-      <div className="h-48 rounded-2xl bg-gradient-to-br from-violet-600/30 to-fuchsia-600/30 relative overflow-hidden">
+      <div className="h-48 rounded-2xl bg-gradient-to-br from-cyan-600/30 to-emerald-600/30 relative overflow-hidden">
         {profile.coverPhoto && (
           <img src={profile.coverPhoto} alt="Cover" className="w-full h-full object-cover" />
         )}
@@ -166,20 +186,31 @@ export default function ProfilePage() {
       {/* Profile Info */}
       <div className="px-4 -mt-12 relative z-10">
         <div className="flex items-end justify-between">
-          <Avatar className="w-24 h-24 border-4 border-background ring-2 ring-violet-500/30">
+          <Avatar className="w-24 h-24 border-4 border-background ring-2 ring-cyan-500/30">
             <AvatarImage src={profile.avatar} alt={profile.name} />
-            <AvatarFallback className="bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-2xl">
+            <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-emerald-500 text-white text-2xl">
               {profile.name?.charAt(0)?.toUpperCase()}
             </AvatarFallback>
           </Avatar>
 
           <div className="flex gap-2 mb-2">
             {isOwnProfile ? (
-              <Link href="/profile/edit">
-                <Button variant="outline" size="sm" className="rounded-full">
-                  Edit Profile
+              <>
+                <Link href="/profile/edit">
+                  <Button variant="outline" size="sm" className="rounded-full">
+                    Edit Profile
+                  </Button>
+                </Link>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => signOut({ callbackUrl: '/' })}
+                  className="rounded-full text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                >
+                  <Ban className="w-4 h-4 mr-1 lg:hidden" />
+                  Logout
                 </Button>
-              </Link>
+              </>
             ) : (
               <>
                 <Button
@@ -187,7 +218,7 @@ export default function ProfilePage() {
                   size="sm"
                   className={`rounded-full gap-1.5 ${isFollowing
                       ? 'bg-muted text-foreground hover:bg-red-500/10 hover:text-red-400'
-                      : 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white'
+                      : 'bg-gradient-to-r from-cyan-600 to-emerald-600 text-white'
                     }`}
                 >
                   {isFollowing ? <UserMinus className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
@@ -200,6 +231,10 @@ export default function ProfilePage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
+                    <DropdownMenuItem onClick={toggleCloseFriend} className={isCloseFriend ? 'text-emerald-400' : ''}>
+                      <Star className={`w-4 h-4 mr-2 ${isCloseFriend ? 'fill-emerald-400' : ''}`} /> 
+                      {isCloseFriend ? 'Remove Close Friend' : 'Add to Close Friends'}
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleBlock} className="text-red-400">
                       <Ban className="w-4 h-4 mr-2" /> Block
                     </DropdownMenuItem>
@@ -213,8 +248,11 @@ export default function ProfilePage() {
         <div className="mt-3">
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold">{profile.name}</h1>
+            {isCloseFriend && (
+               <Star className="w-5 h-5 text-emerald-400 fill-emerald-400" />
+            )}
             {profile.verified && (
-              <ShieldCheck className="w-5 h-5 text-violet-400 fill-violet-400/20" />
+              <ShieldCheck className="w-5 h-5 text-cyan-400 fill-cyan-400/20" />
             )}
           </div>
           <p className="text-sm text-muted-foreground">@{profile.username}</p>
@@ -225,7 +263,7 @@ export default function ProfilePage() {
               <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{profile.location}</span>
             )}
             {profile.website && (
-              <a href={profile.website} className="flex items-center gap-1 text-violet-400 hover:underline">
+              <a href={profile.website} className="flex items-center gap-1 text-cyan-400 hover:underline">
                 <LinkIcon className="w-3.5 h-3.5" />{profile.website}
               </a>
             )}

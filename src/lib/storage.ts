@@ -7,7 +7,7 @@ export async function uploadFile(file: File): Promise<string> {
 
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        { resource_type: 'auto', folder: 'nexus_uploads' },
+        { resource_type: 'auto', folder: 'vertex_uploads' },
         (error, result) => {
           if (error) {
             console.error('Cloudinary upload error:', error);
@@ -34,7 +34,7 @@ export async function deleteFile(publicUrl: string): Promise<void> {
     // Extract public ID from the URL roughly
     const parts = publicUrl.split('/');
     const filenameWithExt = parts[parts.length - 1];
-    const publicId = 'nexus_uploads/' + filenameWithExt.split('.')[0];
+    const publicId = 'vertex_uploads/' + filenameWithExt.split('.')[0];
     
     await cloudinary.uploader.destroy(publicId);
   } catch (error) {

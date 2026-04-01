@@ -134,7 +134,7 @@ export default function StoriesPage() {
   return (
     <div className="max-w-[500px] mx-auto">
       <h1 className="text-2xl font-bold mb-4">
-        <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">Stories</span>
+        <span className="bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">Stories</span>
       </h1>
 
       {/* Story Rings */}
@@ -153,7 +153,7 @@ export default function StoriesPage() {
                     {currentUser?.name?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="absolute bottom-0 right-0 bg-violet-500 rounded-full text-white p-0.5 border-2 border-background shadow-sm">
+                <div className="absolute bottom-0 right-0 bg-cyan-500 rounded-full text-white p-0.5 border-2 border-background shadow-sm">
                   <Plus className="w-3.5 h-3.5" strokeWidth={3} />
                 </div>
               </div>
@@ -212,7 +212,7 @@ export default function StoriesPage() {
                 <Button 
                   onClick={handleCreateSubmit} 
                   disabled={!previewUrl || isUploading}
-                  className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white rounded-full px-6 h-8 text-xs font-semibold"
+                  className="bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white rounded-full px-6 h-8 text-xs font-semibold"
                 >
                   {isUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> : null}
                   Share Story
@@ -229,12 +229,12 @@ export default function StoriesPage() {
             className="flex flex-col items-center gap-1.5 shrink-0"
           >
             <div className={`p-[2px] rounded-full ${group.hasUnviewed
-                ? 'bg-gradient-to-tr from-violet-500 via-fuchsia-500 to-pink-500'
+                ? 'bg-gradient-to-tr from-cyan-500 via-emerald-500 to-pink-500'
                 : 'bg-muted'
-              } ${i === activeGroup ? 'ring-2 ring-violet-400 ring-offset-2 ring-offset-background' : ''}`}>
+              } ${i === activeGroup ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-background' : ''}`}>
               <Avatar className="w-14 h-14 border-2 border-background">
                 <AvatarImage src={group.user.avatar} />
-                <AvatarFallback className="bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-sm">
+                <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-emerald-500 text-white text-sm">
                   {group.user.name?.charAt(0)?.toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -270,7 +270,7 @@ export default function StoriesPage() {
             <div className="flex items-center gap-2">
               <Avatar className="w-8 h-8">
                 <AvatarImage src={currentGroup.user.avatar} />
-                <AvatarFallback className="bg-violet-500 text-white text-xs">
+                <AvatarFallback className="bg-cyan-500 text-white text-xs">
                   {currentGroup.user.name?.charAt(0)}
                 </AvatarFallback>
               </Avatar>

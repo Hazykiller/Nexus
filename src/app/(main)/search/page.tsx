@@ -34,7 +34,7 @@ function SearchContent() {
   return (
     <div className="max-w-[600px] mx-auto">
       <h1 className="text-2xl font-bold mb-4">
-        <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">Search</span>
+        <span className="bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">Search</span>
       </h1>
       <div className="relative mb-4">
         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -60,7 +60,7 @@ function SearchContent() {
               <Link key={u.id} href={`/profile/${u.username}`} className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors">
                 <Avatar className="w-10 h-10">
                   <AvatarImage src={u.avatar} />
-                  <AvatarFallback className="bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-sm">{u.name?.charAt(0)}</AvatarFallback>
+                  <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-emerald-500 text-white text-sm">{u.name?.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div><p className="text-sm font-semibold">{u.name}</p><p className="text-xs text-muted-foreground">@{u.username}</p></div>
               </Link>
@@ -74,7 +74,7 @@ function SearchContent() {
           <TabsContent value="hashtags" className="space-y-2">
             {results.hashtags.length > 0 ? results.hashtags.map((t) => (
               <Link key={t.name} href={`/hashtag/${t.name}`} className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted">
-                <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center"><Hash className="w-5 h-5 text-violet-400" /></div>
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center"><Hash className="w-5 h-5 text-cyan-400" /></div>
                 <div><p className="text-sm font-semibold">#{t.name}</p><p className="text-xs text-muted-foreground">{t.postCount} posts</p></div>
               </Link>
             )) : <p className="text-center py-8 text-sm text-muted-foreground">No hashtags found</p>}
@@ -83,7 +83,7 @@ function SearchContent() {
           <TabsContent value="groups" className="space-y-2">
             {results.groups.length > 0 ? results.groups.map((g) => (
               <Link key={g.id} href={`/groups/${g.id}`} className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted">
-                <div className="w-10 h-10 rounded-xl bg-fuchsia-500/10 flex items-center justify-center"><UsersRound className="w-5 h-5 text-fuchsia-400" /></div>
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center"><UsersRound className="w-5 h-5 text-emerald-400" /></div>
                 <div><p className="text-sm font-semibold">{g.name}</p><p className="text-xs text-muted-foreground">{g.memberCount} members</p></div>
               </Link>
             )) : <p className="text-center py-8 text-sm text-muted-foreground">No groups found</p>}

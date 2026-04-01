@@ -27,8 +27,8 @@ export default function HashtagPage() {
   return (
     <div className="max-w-[600px] mx-auto">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center">
-          <Hash className="w-6 h-6 text-violet-400" />
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-emerald-500/20 flex items-center justify-center">
+          <Hash className="w-6 h-6 text-cyan-400" />
         </div>
         <div>
           <h1 className="text-2xl font-bold">#{tag}</h1>

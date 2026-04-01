@@ -69,9 +69,9 @@ export function UserListModal({ open, onOpenChange, title, userId, type }: UserL
                   onClick={() => onOpenChange(false)}
                   className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-muted transition-colors"
                 >
-                  <Avatar className="w-10 h-10 ring-2 ring-violet-500/20">
+                  <Avatar className="w-10 h-10 ring-2 ring-cyan-500/20">
                     <AvatarImage src={u.avatar} alt={u.name} />
-                    <AvatarFallback className="bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-sm">
+                    <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-emerald-500 text-white text-sm">
                       {u.name?.charAt(0)?.toUpperCase()}
                     </AvatarFallback>
                   </Avatar>

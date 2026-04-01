@@ -21,7 +21,10 @@ export default function EditProfilePage() {
     website: '',
     location: '',
     dob: '',
+    privacy: 'public',
   });
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,10 +33,18 @@ export default function EditProfilePage() {
     setIsLoading(true);
 
     try {
+      const formData = new FormData();
+      formData.append('name', form.name);
+      formData.append('bio', form.bio);
+      formData.append('website', form.website);
+      formData.append('location', form.location);
+      formData.append('dob', form.dob);
+      formData.append('privacy', form.privacy);
+      if (avatarFile) formData.append('avatar', avatarFile);
+
       const res = await fetch(`/api/users/${user.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: formData, // Auto-sets multipart/form-data boundary
       });
 
       if (res.ok) {
@@ -53,22 +64,36 @@ export default function EditProfilePage() {
   return (
     <div className="max-w-[500px] mx-auto">
       <h1 className="text-2xl font-bold mb-6">
-        <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">Edit Profile</span>
+        <span className="bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">Edit Profile</span>
       </h1>
 
       <Card className="rounded-2xl border border-border p-6">
         <div className="flex flex-col items-center mb-6">
-          <div className="relative group">
-            <Avatar className="w-24 h-24 ring-4 ring-violet-500/20">
-              <AvatarImage src={user?.image} />
-              <AvatarFallback className="bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-2xl">
-                {user?.name?.charAt(0)?.toUpperCase()}
+          <Label htmlFor="avatar-upload" className="relative group cursor-pointer inline-block">
+            <Avatar className="w-24 h-24 ring-4 ring-cyan-500/20">
+              <AvatarImage src={avatarPreview || user?.image} />
+              <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-emerald-500 text-white text-2xl">
+                {user?.name?.charAt(0)?.toUpperCase() || '?'}
               </AvatarFallback>
             </Avatar>
-            <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+            <div className="absolute inset-0 rounded-full bg-black/50 flex flex-col gap-1 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
               <Camera className="w-6 h-6 text-white" />
+              <span className="text-[10px] text-white/90 font-medium">Upload</span>
             </div>
-          </div>
+            <input 
+              id="avatar-upload" 
+              type="file" 
+              accept="image/*" 
+              className="hidden" 
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setAvatarFile(file);
+                  setAvatarPreview(URL.createObjectURL(file));
+                }
+              }}
+            />
+          </Label>
           <p className="text-sm text-muted-foreground mt-2">@{user?.username}</p>
         </div>
 
@@ -123,8 +148,33 @@ export default function EditProfilePage() {
               className="mt-1.5 rounded-xl"
             />
           </div>
+          
+          <div className="pt-2">
+            <Label className="mb-1.5 block">Account Privacy</Label>
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant={form.privacy === 'public' ? 'default' : 'outline'}
+                className={form.privacy === 'public' ? 'flex-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl' : 'flex-1 rounded-xl border-cyan-500/30 text-cyan-400'}
+                onClick={() => setForm(p => ({ ...p, privacy: 'public' }))}
+              >
+                Public
+              </Button>
+              <Button
+                type="button"
+                variant={form.privacy === 'private' ? 'default' : 'outline'}
+                className={form.privacy === 'private' ? 'flex-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl' : 'flex-1 rounded-xl border-emerald-500/30 text-emerald-400'}
+                onClick={() => setForm(p => ({ ...p, privacy: 'private' }))}
+              >
+                Private
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Private accounts limit visibility and require direct approval for messages and follows.
+            </p>
+          </div>
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-4 border-t border-border mt-6">
             <Button
               type="button"
               variant="outline"
@@ -136,7 +186,7 @@ export default function EditProfilePage() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="flex-1 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white"
+              className="flex-1 rounded-xl bg-gradient-to-r from-cyan-600 to-emerald-600 text-white"
             >
               {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Save Changes

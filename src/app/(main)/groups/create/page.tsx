@@ -37,7 +37,7 @@ export default function CreateGroupPage() {
   return (
     <div className="max-w-[500px] mx-auto">
       <h1 className="text-2xl font-bold mb-6">
-        <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">Create Group</span>
+        <span className="bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">Create Group</span>
       </h1>
       <Card className="rounded-2xl p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -60,7 +60,7 @@ export default function CreateGroupPage() {
               </Button>
             </div>
           </div>
-          <Button type="submit" disabled={isLoading} className="w-full rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white">
+          <Button type="submit" disabled={isLoading} className="w-full rounded-xl bg-gradient-to-r from-cyan-600 to-emerald-600 text-white">
             {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />} Create Group
           </Button>
         </form>

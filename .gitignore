@@ -46,5 +46,16 @@ next-env.d.ts
 init.cypher
 
 # AI agent files
+# AI agent files
 AGENTS.md
 CLAUDE.md
+
+# Vertex Airtight Security: Local-Only and Prototype Files
+.env*
+tmp/
+*.txt
+*.cypher
+scripts/setup_db.js
+*.log
+.vercel
+tsconfig.tsbuildinfo

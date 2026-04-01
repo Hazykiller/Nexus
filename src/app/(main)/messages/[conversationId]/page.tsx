@@ -150,9 +150,9 @@ export default function ChatViewPage() {
           </>
         ) : (
           <>
-            <Avatar className="w-10 h-10 ring-2 ring-violet-500/20">
+            <Avatar className="w-10 h-10 ring-2 ring-cyan-500/20">
               <AvatarImage src={partnerInfo?.avatar} />
-              <AvatarFallback className="bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white">
+              <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-emerald-500 text-white">
                 {partnerInfo?.name?.charAt(0)?.toUpperCase() || '?'}
               </AvatarFallback>
             </Avatar>
@@ -187,7 +187,7 @@ export default function ChatViewPage() {
                     {showAvatar && (
                       <Avatar className="w-8 h-8 ring-1 ring-border shadow-sm">
                         <AvatarImage src={msg.sender?.avatar} />
-                        <AvatarFallback className="bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-[10px]">
+                        <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-emerald-500 text-white text-[10px]">
                           {msg.sender?.name?.charAt(0)?.toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
@@ -199,7 +199,7 @@ export default function ChatViewPage() {
                   <div
                     className={`px-4 py-2 text-sm max-w-full break-words shadow-sm ${
                       isMe
-                        ? 'bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white rounded-2xl rounded-tr-sm'
+                        ? 'bg-gradient-to-br from-cyan-600 to-emerald-600 text-white rounded-2xl rounded-tr-sm'
                         : 'bg-muted text-foreground rounded-2xl rounded-tl-sm border border-border/50'
                     }`}
                   >
@@ -222,7 +222,7 @@ export default function ChatViewPage() {
           type="button"
           variant="ghost"
           size="icon"
-          className="shrink-0 text-muted-foreground hover:text-violet-400 hover:bg-violet-400/10 rounded-full"
+          className="shrink-0 text-muted-foreground hover:text-cyan-400 hover:bg-cyan-400/10 rounded-full"
         >
           <ImageIcon className="w-5 h-5" />
         </Button>
@@ -230,12 +230,12 @@ export default function ChatViewPage() {
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           placeholder="Message..."
-          className="flex-1 rounded-full bg-muted border-none focus-visible:ring-1 focus-visible:ring-violet-500 h-10 px-4"
+          className="flex-1 rounded-full bg-muted border-none focus-visible:ring-1 focus-visible:ring-cyan-500 h-10 px-4"
         />
         <Button
           type="submit"
           disabled={!inputText.trim() || sending}
-          className="shrink-0 rounded-full h-10 px-4 flex items-center gap-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white hover:from-violet-500 hover:to-fuchsia-500 disabled:opacity-50"
+          className="shrink-0 rounded-full h-10 px-4 flex items-center gap-2 bg-gradient-to-r from-cyan-600 to-emerald-600 text-white hover:from-cyan-500 hover:to-emerald-500 disabled:opacity-50"
         >
           <Send className="w-4 h-4" />
           <span className="hidden sm:inline">Send</span>

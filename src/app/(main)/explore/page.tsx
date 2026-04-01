@@ -159,7 +159,7 @@ export default function ExplorePage() {
   return (
     <div className="max-w-[600px] mx-auto">
       <h1 className="text-2xl font-bold mb-4">
-        <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
+        <span className="bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
           Explore
         </span>
       </h1>
@@ -190,7 +190,7 @@ export default function ExplorePage() {
             ))
           ) : (
             <EmptyState
-              icon={<TrendingUp className="w-8 h-8 text-violet-400" />}
+              icon={<TrendingUp className="w-8 h-8 text-cyan-400" />}
               title="Nothing trending yet"
               description="Be the first to post something — your content could end up here!"
             />
@@ -211,7 +211,7 @@ export default function ExplorePage() {
             ))
           ) : (
             <EmptyState
-              icon={<Clock className="w-8 h-8 text-violet-400" />}
+              icon={<Clock className="w-8 h-8 text-cyan-400" />}
               title="No recent posts"
               description="Public posts from all users will appear here"
             />
@@ -237,12 +237,12 @@ export default function ExplorePage() {
               return (
                 <div
                   key={person.id}
-                  className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card hover:border-violet-500/30 transition-colors"
+                  className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card hover:border-cyan-500/30 transition-colors"
                 >
                   <Link href={`/profile/${person.username}`}>
-                    <Avatar className="w-12 h-12 ring-2 ring-violet-500/10 hover:ring-violet-500/30 transition-all">
+                    <Avatar className="w-12 h-12 ring-2 ring-cyan-500/10 hover:ring-cyan-500/30 transition-all">
                       <AvatarImage src={person.avatar} alt={person.name} />
-                      <AvatarFallback className="bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white">
+                      <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-emerald-500 text-white">
                         {person.name?.charAt(0)?.toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
@@ -251,7 +251,7 @@ export default function ExplorePage() {
                     <Link href={`/profile/${person.username}`} className="hover:underline">
                       <p className="text-sm font-semibold truncate flex items-center gap-1">
                         {person.name}
-                        {person.verified && <span className="text-violet-400 text-xs">✓</span>}
+                        {person.verified && <span className="text-cyan-400 text-xs">✓</span>}
                       </p>
                     </Link>
                     <p className="text-xs text-muted-foreground truncate">
@@ -272,8 +272,8 @@ export default function ExplorePage() {
                     variant={isFollowing ? 'outline' : 'default'}
                     className={`h-8 rounded-full text-xs gap-1 px-3 ${
                       isFollowing
-                        ? 'border-violet-500/30 text-violet-400 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30'
-                        : 'bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white'
+                        ? 'border-cyan-500/30 text-cyan-400 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30'
+                        : 'bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white'
                     }`}
                     onClick={() => handleFollow(person.id)}
                   >
@@ -292,7 +292,7 @@ export default function ExplorePage() {
             })
           ) : (
             <EmptyState
-              icon={<Users className="w-8 h-8 text-violet-400" />}
+              icon={<Users className="w-8 h-8 text-cyan-400" />}
               title="No people found"
               description="New users will appear here"
             />
@@ -304,7 +304,7 @@ export default function ExplorePage() {
           <div className="flex items-center gap-2 mb-2 overflow-x-auto pb-2 scrollbar-none">
             {hashtags.map((tag) => (
               <Link key={tag.name} href={`/hashtag/${tag.name}`}>
-                <Badge variant="secondary" className="px-3 py-1 rounded-full whitespace-nowrap hover:bg-violet-500/10 hover:text-violet-400 transition-colors cursor-pointer">
+                <Badge variant="secondary" className="px-3 py-1 rounded-full whitespace-nowrap hover:bg-cyan-500/10 hover:text-cyan-400 transition-colors cursor-pointer">
                   #{tag.name}
                 </Badge>
               </Link>
@@ -322,7 +322,7 @@ export default function ExplorePage() {
             ))
           ) : (
             <EmptyState
-              icon={<Hash className="w-8 h-8 text-violet-400" />}
+              icon={<Hash className="w-8 h-8 text-cyan-400" />}
               title="No tagged posts yet"
               description="Posts with #hashtags will appear here"
             />

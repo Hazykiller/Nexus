@@ -47,8 +47,28 @@ export async function POST(req: NextRequest) {
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const userId = (session.user as Record<string, unknown>).id as string;
 
-    const { name, description, coverImage, privacy } = await req.json();
+    const { name, description, coverImage, privacy, memberIds = [] } = await req.json();
     if (!name) return NextResponse.json({ error: 'Group name is required' }, { status: 400 });
+
+    // Vertex Airtight: Validate that the creator follows 100% of members added during creation.
+    if (memberIds.length > 0) {
+      const followVerify = await runQuery(
+        `MATCH (u:User {id: $userId})
+         UNWIND $memberIds AS mid
+         MATCH (target:User {id: mid})
+         OPTIONAL MATCH (u)-[r:FOLLOWS]->(target)
+         RETURN mid, r IS NOT NULL AS isFollowing`,
+        { userId, memberIds }
+      );
+      
+      const unfollowed = (followVerify as any[]).filter(r => !r.isFollowing);
+      if (unfollowed.length > 0) {
+        return NextResponse.json({ 
+          error: 'Airtight Security: You can only add users you explicitly follow to a group.', 
+          failedIds: unfollowed.map(r => r.mid)
+        }, { status: 403 });
+      }
+    }
 
     const groupId = uuidv4();
 
@@ -62,7 +82,11 @@ export async function POST(req: NextRequest) {
          privacy: $privacy,
          createdAt: datetime()
        })
-       CREATE (u)-[:MEMBER_OF {role: 'admin', joinedAt: datetime()}]->(g)`,
+       CREATE (u)-[:MEMBER_OF {role: 'admin', joinedAt: datetime()}]->(g)
+       WITH g
+       UNWIND $memberIds AS mid
+       MATCH (m:User {id: mid})
+       CREATE (m)-[:MEMBER_OF {role: 'member', joinedAt: datetime()}]->(g)`,
       {
         userId,
         groupId,
@@ -70,6 +94,7 @@ export async function POST(req: NextRequest) {
         description: description || '',
         coverImage: coverImage || '',
         privacy: privacy || 'public',
+        memberIds,
       }
     );
 

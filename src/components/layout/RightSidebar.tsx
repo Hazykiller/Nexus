@@ -66,7 +66,7 @@ export function RightSidebar() {
         {/* Suggested Users */}
         <div className="rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center gap-2 mb-4">
-            <UserPlus className="w-4 h-4 text-violet-400" />
+            <UserPlus className="w-4 h-4 text-cyan-400" />
             <h3 className="font-semibold text-sm">Suggested for you</h3>
           </div>
           {loading ? (
@@ -86,9 +86,9 @@ export function RightSidebar() {
               {suggestedUsers.map((u) => (
                 <div key={u.id} className="flex items-center gap-3 group">
                   <Link href={`/profile/${u.username}`}>
-                    <Avatar className="w-10 h-10 ring-2 ring-transparent group-hover:ring-violet-500/30 transition-all">
+                    <Avatar className="w-10 h-10 ring-2 ring-transparent group-hover:ring-cyan-500/30 transition-all">
                       <AvatarImage src={u.avatar} alt={u.name} />
-                      <AvatarFallback className="bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-xs">
+                      <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-emerald-500 text-white text-xs">
                         {u.name?.charAt(0)?.toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
@@ -102,7 +102,7 @@ export function RightSidebar() {
                   <Button
                     variant={followingIds.has(u.id) ? 'secondary' : 'outline'}
                     size="sm"
-                    className="text-xs px-3 h-7 border-violet-500/30 text-violet-400 hover:bg-violet-500/10"
+                    className="text-xs px-3 h-7 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
                     onClick={() => handleFollow(u.id)}
                     disabled={followingLoading === u.id || followingIds.has(u.id)}
                   >
@@ -126,7 +126,7 @@ export function RightSidebar() {
 
         {/* Footer */}
         <div className="px-1 text-[11px] text-muted-foreground leading-relaxed">
-          <p>© 2024 Nexus. Built with Next.js & Neo4j</p>
+          <p>© 2024 Vertex. Built with Next.js & Neo4j</p>
         </div>
       </div>
     </aside>

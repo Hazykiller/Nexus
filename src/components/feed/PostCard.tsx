@@ -19,6 +19,7 @@ import {
   Copy,
   X,
   Loader2,
+  Star,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -101,10 +102,10 @@ function ShareModal({
         <div className="space-y-3">
           <button
             onClick={copyLink}
-            className="w-full flex items-center gap-3 p-3 rounded-xl border border-border hover:border-violet-500/40 hover:bg-violet-500/5 transition-all text-left"
+            className="w-full flex items-center gap-3 p-3 rounded-xl border border-border hover:border-cyan-500/40 hover:bg-cyan-500/5 transition-all text-left"
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center">
-              <Copy className="w-4 h-4 text-violet-400" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500/20 to-emerald-500/20 flex items-center justify-center">
+              <Copy className="w-4 h-4 text-cyan-400" />
             </div>
             <div>
               <p className="text-sm font-medium">Copy link</p>
@@ -118,12 +119,12 @@ function ShareModal({
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
               placeholder="Add a caption… (optional)"
-              className="w-full bg-muted/50 border border-border rounded-xl p-3 text-sm resize-none h-20 focus:outline-none focus:border-violet-500/40 placeholder:text-muted-foreground"
+              className="w-full bg-muted/50 border border-border rounded-xl p-3 text-sm resize-none h-20 focus:outline-none focus:border-cyan-500/40 placeholder:text-muted-foreground"
             />
             <Button
               onClick={shareToFeed}
               disabled={sharing}
-              className="w-full h-9 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white text-sm font-semibold"
+              className="w-full h-9 rounded-xl bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white text-sm font-semibold"
             >
               {sharing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
               {sharing ? 'Sharing…' : 'Share'}
@@ -142,7 +143,7 @@ function CommentItem({ comment }: { comment: Comment }) {
     <div className="flex gap-2 group">
       <Avatar className="w-7 h-7 shrink-0">
         <AvatarImage src={comment.author?.avatar} />
-        <AvatarFallback className="bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-[10px]">
+        <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-emerald-500 text-white text-[10px]">
           {comment.author?.name?.charAt(0)?.toUpperCase()}
         </AvatarFallback>
       </Avatar>
@@ -288,6 +289,8 @@ export function PostCard({ post, onUpdate }: { post: Post; onUpdate?: () => void
     ? '👥'
     : post.visibility === 'private'
     ? '🔒'
+    : post.visibility === 'close_friends'
+    ? <Star className="w-3 h-3 text-emerald-400 fill-emerald-400 inline-block" />
     : null;
 
   return (
@@ -300,14 +303,14 @@ export function PostCard({ post, onUpdate }: { post: Post; onUpdate?: () => void
         />
       )}
 
-      <Card className="rounded-2xl border border-border bg-card overflow-hidden hover:border-violet-500/20 transition-colors">
+      <Card className="rounded-2xl border border-border bg-card overflow-hidden hover:border-cyan-500/20 transition-colors">
         {/* Header */}
         <div className="flex items-center justify-between p-4 pb-2">
           <div className="flex items-center gap-3">
             <Link href={`/profile/${post.author?.username}`}>
-              <Avatar className="w-10 h-10 ring-2 ring-violet-500/20 hover:ring-violet-500/40 transition-all">
+              <Avatar className="w-10 h-10 ring-2 ring-cyan-500/20 hover:ring-cyan-500/40 transition-all">
                 <AvatarImage src={post.author?.avatar} alt={post.author?.name} />
-                <AvatarFallback className="bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-sm">
+                <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-emerald-500 text-white text-sm">
                   {post.author?.name?.charAt(0)?.toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -319,7 +322,7 @@ export function PostCard({ post, onUpdate }: { post: Post; onUpdate?: () => void
               >
                 {post.author?.name}
                 {post.author?.verified && (
-                  <span className="text-violet-400 text-xs">✓</span>
+                  <span className="text-cyan-400 text-xs">✓</span>
                 )}
               </Link>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -375,7 +378,7 @@ export function PostCard({ post, onUpdate }: { post: Post; onUpdate?: () => void
               <Link
                 key={tag}
                 href={`/hashtag/${tag}`}
-                className="text-xs text-violet-400 hover:text-violet-300"
+                className="text-xs text-cyan-400 hover:text-cyan-300"
               >
                 #{tag}
               </Link>
@@ -503,7 +506,7 @@ export function PostCard({ post, onUpdate }: { post: Post; onUpdate?: () => void
               variant="ghost"
               size="sm"
               id={`comment-btn-${post.id}`}
-              className="h-9 px-3 rounded-full gap-1.5 text-muted-foreground hover:text-violet-400"
+              className="h-9 px-3 rounded-full gap-1.5 text-muted-foreground hover:text-cyan-400"
               onClick={() => setShowComments(!showComments)}
             >
               <MessageCircle className="w-4 h-4" />
@@ -528,7 +531,7 @@ export function PostCard({ post, onUpdate }: { post: Post; onUpdate?: () => void
             variant="ghost"
             size="sm"
             id={`save-btn-${post.id}`}
-            className={`h-9 w-9 p-0 rounded-full transition-colors ${saved ? 'text-violet-400' : 'text-muted-foreground hover:text-violet-400'}`}
+            className={`h-9 w-9 p-0 rounded-full transition-colors ${saved ? 'text-cyan-400' : 'text-muted-foreground hover:text-cyan-400'}`}
             onClick={handleSave}
           >
             {saved ? <BookmarkCheck className="w-4 h-4 fill-current" /> : <Bookmark className="w-4 h-4" />}
@@ -542,7 +545,7 @@ export function PostCard({ post, onUpdate }: { post: Post; onUpdate?: () => void
             <div className="flex items-center gap-2">
               <Avatar className="w-7 h-7 shrink-0">
                 <AvatarImage src={user?.image} />
-                <AvatarFallback className="bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-[10px]">
+                <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-emerald-500 text-white text-[10px]">
                   {user?.name?.charAt(0)?.toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -566,7 +569,7 @@ export function PostCard({ post, onUpdate }: { post: Post; onUpdate?: () => void
                     variant="ghost"
                     onClick={handleComment}
                     disabled={commentPosting}
-                    className="h-6 w-6 p-0 rounded-full text-violet-400 hover:text-violet-300 hover:bg-transparent"
+                    className="h-6 w-6 p-0 rounded-full text-cyan-400 hover:text-cyan-300 hover:bg-transparent"
                   >
                     {commentPosting ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />

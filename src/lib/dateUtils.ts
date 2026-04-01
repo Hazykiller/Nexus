@@ -13,7 +13,7 @@ export function parseNeo4jDate(dateVal: any): Date | null {
       const hour = dateVal.hour?.low ?? dateVal.hour ?? 0;
       const min = dateVal.minute?.low ?? dateVal.minute ?? 0;
       const sec = dateVal.second?.low ?? dateVal.second ?? 0;
-      d = new Date(year, month, day, hour, min, sec);
+      d = new Date(Date.UTC(year, month, day, hour, min, sec));
     } else {
       d = new Date(dateVal);
     }

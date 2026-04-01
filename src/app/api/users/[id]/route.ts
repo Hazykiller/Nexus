@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { runSingleQuery, runWriteQuery } from '@/lib/neo4j';
+import { uploadFile } from '@/lib/storage';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -15,15 +16,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
        OPTIONAL MATCH (u)-[:FOLLOWS]->(following:User)
        OPTIONAL MATCH (u)-[:CREATED]->(p:Post)
        OPTIONAL MATCH (me:User {id: $currentUserId})-[f:FOLLOWS]->(u)
-       OPTIONAL MATCH (me2:User {id: $currentUserId})-[b:BLOCKED]->(u)
-       OPTIONAL MATCH (u)-[fb:FOLLOWS]->(me3:User {id: $currentUserId})
-       RETURN u,
-         COUNT(DISTINCT follower) AS followersCount,
-         COUNT(DISTINCT following) AS followingCount,
-         COUNT(DISTINCT p) AS postsCount,
-         f IS NOT NULL AS isFollowing,
-         b IS NOT NULL AS isBlocked,
-         fb IS NOT NULL AS isFollowedBy`,
+        OPTIONAL MATCH (me4:User {id: $currentUserId})-[cf:CLOSE_FRIEND]->(u)
+        RETURN u,
+          COUNT(DISTINCT follower) AS followersCount,
+          COUNT(DISTINCT following) AS followingCount,
+          COUNT(DISTINCT p) AS postsCount,
+          f IS NOT NULL AS isFollowing,
+          b IS NOT NULL AS isBlocked,
+          fb IS NOT NULL AS isFollowedBy,
+          cf IS NOT NULL AS isCloseFriend`,
       { id, currentUserId: currentUserId || '' }
     );
 
@@ -44,6 +45,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         isFollowing: result.isFollowing,
         isBlocked: result.isBlocked,
         isFollowedBy: result.isFollowedBy,
+        isCloseFriend: result.isCloseFriend,
       },
     });
   } catch (error) {
@@ -62,8 +64,19 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const body = await req.json();
-    const { name, bio, website, location, dob, avatar, coverPhoto, privacy } = body;
+    const formData = await req.formData();
+    const name = formData.get('name') as string | null;
+    const bio = formData.get('bio') as string | null;
+    const website = formData.get('website') as string | null;
+    const location = formData.get('location') as string | null;
+    const dob = formData.get('dob') as string | null;
+    const privacy = formData.get('privacy') as string | null;
+
+    let avatarUrl = undefined;
+    const avatarFile = formData.get('avatar') as File | null;
+    if (avatarFile && avatarFile.size > 0) {
+      avatarUrl = await uploadFile(avatarFile);
+    }
 
     await runWriteQuery(
       `MATCH (u:User {id: $id})
@@ -72,11 +85,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
            u.website = COALESCE($website, u.website),
            u.location = COALESCE($location, u.location),
            u.dob = COALESCE($dob, u.dob),
-           u.avatar = COALESCE($avatar, u.avatar),
-           u.coverPhoto = COALESCE($coverPhoto, u.coverPhoto),
+           u.avatar = COALESCE($avatarUrl, u.avatar),
            u.privacy = COALESCE($privacy, u.privacy),
            u.updatedAt = datetime()`,
-      { id, name, bio, website, location, dob, avatar, coverPhoto, privacy }
+      { id, name, bio, website, location, dob, avatarUrl, privacy }
     );
 
     return NextResponse.json({ success: true });

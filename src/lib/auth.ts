@@ -1,10 +1,9 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import GoogleProvider from 'next-auth/providers/google';
-import GitHubProvider from 'next-auth/providers/github';
 import bcrypt from 'bcryptjs';
 import { runSingleQuery, runWriteQuery } from './neo4j';
 import { v4 as uuidv4 } from 'uuid';
+import { encryptAtRest, decryptAtRest } from './dbEncryption';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -17,11 +16,12 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
+        const encryptedEmail = encryptAtRest(credentials.email);
         const result = await runSingleQuery<{
-          u: { id: string; email: string; username: string; name: string; password: string; avatar: string; verified: boolean };
+          u: { id: string; email: string; username: string; name: string; password: string; avatar: string; verified: boolean; isAdmin?: boolean };
         }>(
           'MATCH (u:User {email: $email}) RETURN u',
-          { email: credentials.email }
+          { email: encryptedEmail }
         );
 
         if (!result?.u) return null;
@@ -31,72 +31,25 @@ export const authOptions: NextAuthOptions = {
 
         return {
           id: result.u.id,
-          email: result.u.email,
+          email: decryptAtRest(result.u.email),
           name: result.u.name,
           image: result.u.avatar || null,
           username: result.u.username,
           verified: result.u.verified,
+          isAdmin: result.u.isAdmin || false,
         };
       },
-    }),
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-    GitHubProvider({
-      clientId: process.env.GITHUB_ID!,
-      clientSecret: process.env.GITHUB_SECRET!,
     }),
   ],
   session: {
     strategy: 'jwt',
-    maxAge: 7 * 24 * 60 * 60, // 7 days
+    maxAge: 1 * 60 * 60, // Reduced to 1 hour for Maximum Security
   },
   jwt: {
     maxAge: 15 * 60, // 15 minutes access token
   },
   callbacks: {
     async signIn({ user, account }) {
-      if (account?.provider === 'google' || account?.provider === 'github') {
-        const existing = await runSingleQuery<{ u: { id: string } }>(
-          'MATCH (u:User {email: $email}) RETURN u',
-          { email: user.email }
-        );
-
-        if (!existing) {
-          const id = uuidv4();
-          const username = (user.email?.split('@')[0] || '') + '_' + id.slice(0, 4);
-          await runWriteQuery(
-            `CREATE (u:User {
-              id: $id,
-              email: $email,
-              username: $username,
-              name: $name,
-              avatar: $avatar,
-              bio: '',
-              website: '',
-              location: '',
-              dob: '',
-              privacy: 'public',
-              verified: false,
-              coverPhoto: '',
-              createdAt: datetime(),
-              updatedAt: datetime()
-            })`,
-            {
-              id,
-              email: user.email,
-              username,
-              name: user.name || username,
-              avatar: user.image || '',
-            }
-          );
-          (user as unknown as Record<string, unknown>).id = id;
-          (user as unknown as Record<string, unknown>).username = username;
-        } else {
-          (user as unknown as Record<string, unknown>).id = existing.u.id;
-        }
-      }
       return true;
     },
     async jwt({ token, user, trigger, session }) {
@@ -104,6 +57,7 @@ export const authOptions: NextAuthOptions = {
         token.id = (user as unknown as Record<string, unknown>).id as string;
         token.username = (user as unknown as Record<string, unknown>).username as string;
         token.verified = (user as unknown as Record<string, unknown>).verified as boolean;
+        token.isAdmin = (user as unknown as Record<string, unknown>).isAdmin as boolean;
       }
       if (trigger === 'update' && session) {
         token.name = session.name;
@@ -117,6 +71,7 @@ export const authOptions: NextAuthOptions = {
         (session.user as unknown as Record<string, unknown>).id = token.id;
         (session.user as unknown as Record<string, unknown>).username = token.username;
         (session.user as unknown as Record<string, unknown>).verified = token.verified;
+        (session.user as unknown as Record<string, unknown>).isAdmin = token.isAdmin;
       }
       return session;
     },

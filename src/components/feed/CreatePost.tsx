@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Image, Video, MapPin, Hash, AtSign, Globe, Lock, Users, X, Loader2 } from 'lucide-react';
+import { Image, Video, MapPin, Hash, AtSign, Globe, Lock, Users, X, Loader2, Star } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,7 +20,7 @@ export function CreatePost({ onPostCreated }: { onPostCreated?: () => void }) {
   const [content, setContent] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [video, setVideo] = useState<string | null>(null);
-  const [visibility, setVisibility] = useState<'public' | 'private'>('public');
+  const [visibility, setVisibility] = useState<'public' | 'private' | 'close_friends'>('public');
   const [isLoading, setIsLoading] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -129,11 +129,13 @@ export function CreatePost({ onPostCreated }: { onPostCreated?: () => void }) {
   const visibilityIcon = {
     public: <Globe className="w-3.5 h-3.5" />,
     private: <Lock className="w-3.5 h-3.5" />,
+    close_friends: <Star className="w-3.5 h-3.5 text-emerald-400 fill-emerald-400" />,
   };
 
   const visibilityLabel = {
     public: 'Public',
     private: 'Private',
+    close_friends: 'Close Friends',
   };
 
   const isExpanded = isFocused || !!content || images.length > 0 || !!video || isDropdownOpen;
@@ -154,9 +156,9 @@ export function CreatePost({ onPostCreated }: { onPostCreated?: () => void }) {
       />
 
       <div className="flex gap-3">
-        <Avatar className="w-10 h-10 ring-2 ring-violet-500/20 shrink-0">
+        <Avatar className="w-10 h-10 ring-2 ring-cyan-500/20 shrink-0">
           <AvatarImage src={user?.image} alt={user?.name} />
-          <AvatarFallback className="bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-sm">
+          <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-emerald-500 text-white text-sm">
             {user?.name?.charAt(0)?.toUpperCase()}
           </AvatarFallback>
         </Avatar>
@@ -234,7 +236,7 @@ export function CreatePost({ onPostCreated }: { onPostCreated?: () => void }) {
                   variant="ghost"
                   size="sm"
                   title="Add image"
-                  className="h-8 w-8 p-0 rounded-full text-violet-400 hover:bg-violet-500/10"
+                  className="h-8 w-8 p-0 rounded-full text-cyan-400 hover:bg-cyan-500/10"
                   onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); fileRef.current?.click(); }}
                 >
                   <Image className="w-4 h-4" />
@@ -244,7 +246,7 @@ export function CreatePost({ onPostCreated }: { onPostCreated?: () => void }) {
                   variant="ghost"
                   size="sm"
                   title="Add video"
-                  className="h-8 w-8 p-0 rounded-full text-fuchsia-400 hover:bg-fuchsia-500/10"
+                  className="h-8 w-8 p-0 rounded-full text-emerald-400 hover:bg-emerald-500/10"
                   onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); fileRef.current?.click(); }}
                 >
                   <Video className="w-4 h-4" />
@@ -298,6 +300,9 @@ export function CreatePost({ onPostCreated }: { onPostCreated?: () => void }) {
                     <DropdownMenuItem onClick={() => setVisibility('public')}>
                       <Globe className="w-4 h-4 mr-2" /> Public
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setVisibility('close_friends')}>
+                       <Star className="w-4 h-4 mr-2" /> Close Friends
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setVisibility('private')}>
                       <Lock className="w-4 h-4 mr-2" /> Private
                     </DropdownMenuItem>
@@ -312,7 +317,7 @@ export function CreatePost({ onPostCreated }: { onPostCreated?: () => void }) {
                 onMouseDown={(e) => e.preventDefault()} // CRITICAL: prevent blur before click fires
                 disabled={isLoading || (!content.trim() && images.length === 0 && !video)}
                 size="sm"
-                className="h-8 px-5 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white text-xs font-semibold disabled:opacity-50 transition-all"
+                className="h-8 px-5 rounded-full bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white text-xs font-semibold disabled:opacity-50 transition-all"
               >
                 {isLoading ? (
                   <>
