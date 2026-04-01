@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, Loader2, ArrowLeft, Mail, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +11,7 @@ import { toast } from 'sonner';
 
 /**
  * Vertex 'Royal Premium' Register Page.
- * Features: Framer Motion animations, Email verification display, and Indigo-Violet theme.
+ * Features: Tailwind animations, Email verification display, and Indigo-Violet theme.
  */
 export default function RegisterPage() {
   const router = useRouter();
@@ -84,11 +83,7 @@ export default function RegisterPage() {
       <div className="min-h-screen flex items-center justify-center px-4 bg-[#050508] relative overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-600/10 blur-[120px] rounded-full pointer-events-none" />
         
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md relative z-10"
-        >
+        <div className="w-full max-w-md relative z-10 animate-in slide-in-from-bottom-5 duration-500">
           <div className="text-center mb-10">
             <Link href="/" className="inline-flex items-center gap-3">
               <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/25">
@@ -141,7 +136,7 @@ export default function RegisterPage() {
               <ArrowLeft className="w-4 h-4" /> Change Email
             </button>
           </div>
-        </motion.div>
+        </div>
       </div>
     );
   }
@@ -150,11 +145,7 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-[#050508] relative overflow-hidden">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-600/10 blur-[120px] rounded-full pointer-events-none" />
 
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-md relative z-10"
-      >
+      <div className="w-full max-w-md relative z-10 animate-in fade-in zoom-in duration-500">
         <div className="text-center mb-10">
           <Link href="/" className="inline-flex items-center gap-3">
             <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/25">
@@ -265,7 +256,7 @@ export default function RegisterPage() {
             </Link>
           </p>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

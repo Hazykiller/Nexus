@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { runSingleQuery, runWriteQuery } from '@/lib/neo4j';
-import { encryptAtRest } from '@/lib/dbEncryption';
-import { sendOtpEmail } from '@/lib/mail';
+import { encryptAtRest } from '@/lib/security/dbEncryption';
+import { sendOtpEmail } from '@/lib/security/mail';
 
 export async function POST(req: NextRequest) {
   try {

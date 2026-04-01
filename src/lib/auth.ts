@@ -1,9 +1,9 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
-import { runSingleQuery, runWriteQuery } from './neo4j';
+import { runSingleQuery, runWriteQuery } from '@/lib/neo4j';
 import { v4 as uuidv4 } from 'uuid';
-import { encryptAtRest, decryptAtRest } from './dbEncryption';
+import { encryptAtRest, decryptAtRest } from '@/lib/security/dbEncryption';
 
 export const authOptions: NextAuthOptions = {
   providers: [

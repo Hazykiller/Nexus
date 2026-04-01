@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { runQuery, runWriteQuery } from '@/lib/neo4j';
 import { v4 as uuidv4 } from 'uuid';
 import { uploadFile } from '@/lib/storage';
-import { isContentSafe } from '@/lib/moderation';
+import { isContentSafe } from '@/lib/security/moderation';
 
 export async function GET(req: NextRequest) {
   try {
