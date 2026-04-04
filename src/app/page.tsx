@@ -1,113 +1,154 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowRight, Shield, Zap, Compass, CheckCircle2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ArrowRight, MessageCircle, Users, Zap, Globe, BookOpen, Compass } from 'lucide-react';
 
-/**
- * Vertex 'Royal Premium' Landing Page.
- * A high-end, animated entrance for the Airtight social network.
- * Features: Tailwind 'animate-in' transitions, Indigo-Violet gradients, and Luxury tech aesthetics.
- */
 export default function LandingPage() {
-  const router = useRouter();
-
   return (
-    <div className="min-h-screen bg-[#050508] text-slate-200 overflow-hidden selection:bg-indigo-500/30">
-      {/* Dynamic Background Glows */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/10 blur-[120px] rounded-full animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-violet-600/10 blur-[120px] rounded-full animate-pulse [animation-delay:2s]" />
+    <div className="min-h-screen bg-[#050508] text-white overflow-x-hidden">
+
+      {/* Subtle background */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-600/8 blur-[140px] rounded-full" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-violet-600/8 blur-[140px] rounded-full" />
       </div>
 
-      {/* Navigation */}
-      <nav className="relative z-50 flex items-center justify-between px-6 py-8 lg:px-12 max-w-7xl mx-auto">
-        <div className="flex items-center gap-3 animate-in slide-in-from-left-5 duration-700">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/25">
+      {/* Nav */}
+      <nav className="relative z-50 flex items-center justify-between px-6 py-5 max-w-6xl mx-auto">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-base shadow-lg shadow-indigo-500/20">
             V
           </div>
-          <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-            Vertex
-          </span>
+          <span className="text-lg font-bold tracking-tight">Vertex</span>
         </div>
-        
-        <div className="flex items-center gap-6 animate-in slide-in-from-right-5 duration-700">
-          <Link href="/login" className="text-sm font-medium hover:text-indigo-400 transition-colors">
-            Sign In
+
+        <div className="flex items-center gap-4">
+          <Link href="/login" className="text-sm text-slate-400 hover:text-white transition-colors">
+            Sign in
           </Link>
-          <Link href="/register">
-            <Button className="rounded-full px-6 bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20">
-              Join Platform
-            </Button>
+          <Link
+            href="/register"
+            className="px-4 py-2 rounded-full bg-white text-black text-sm font-semibold hover:bg-slate-100 transition-colors"
+          >
+            Get started
           </Link>
         </div>
       </nav>
 
-      <main className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-32 lg:px-12 flex flex-col items-center">
-        {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold tracking-wider mb-8 uppercase animate-in fade-in zoom-in duration-1000">
-          <Shield className="w-3 h-3" />
-          Maximum Security Verified
+      {/* Hero */}
+      <main className="relative z-10 max-w-6xl mx-auto px-6 pt-24 pb-20">
+        <div className="max-w-3xl">
+          <p className="text-indigo-400 text-sm font-semibold mb-6 tracking-wide">
+            A social network that respects you
+          </p>
+
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-tight mb-7">
+            Share what{' '}
+            <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
+              matters
+            </span>
+            <br />with people who do
+          </h1>
+
+          <p className="text-slate-400 text-lg leading-relaxed mb-10 max-w-xl">
+            Vertex is a social platform for real conversations, genuine connections,
+            and the moments worth sharing — without the noise.
+          </p>
+
+          <div className="flex items-center gap-4">
+            <Link
+              href="/register"
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition-all shadow-xl shadow-indigo-500/25"
+            >
+              Join Vertex <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link href="/login" className="text-sm text-slate-400 hover:text-white transition-colors">
+              Already a member? Sign in →
+            </Link>
+          </div>
         </div>
 
-        {/* Hero Title */}
-        <h1 className="text-5xl lg:text-7xl xl:text-8xl font-bold text-center leading-[1.1] mb-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-          Connect with <br />
-          <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-pink-400 bg-clip-text text-transparent italic tracking-tighter">
-            Airtight Integrity
-          </span>
-        </h1>
-
-        {/* Hero Description */}
-        <p className="max-w-2xl text-center text-slate-400 text-lg lg:text-xl mb-12 leading-relaxed animate-in fade-in duration-1000 delay-200">
-          Vertex is the luxury standard for modern social networking. 
-          E2EE messaging, proactive moderation, and a gated premium environment for your private digital life.
-        </p>
-
-        {/* CTA Section */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-24 animate-in fade-in slide-in-from-bottom-5 duration-1000 delay-300">
-          <Link href="/register">
-            <Button className="h-14 px-8 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-lg shadow-2xl shadow-indigo-500/30">
-              Start Your Private Feed <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-          </Link>
-        </div>
-
-        {/* Feature Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
+        {/* Features Grid */}
+        <div className="mt-28 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {[
-            { icon: Zap, title: 'Instant Speed', desc: 'Custom orbital pulse loading for the fastest UX.' },
-            { icon: Compass, title: 'Smart Explore', desc: 'Curated feeds built on airtight privacy rules.' },
-            { icon: CheckCircle2, title: 'Safe Space', desc: 'Proactive moderation scans for your peace of mind.' },
+            {
+              icon: MessageCircle,
+              title: 'Real conversations',
+              desc: 'End-to-end encrypted messages, group chats, and threads that actually make sense.',
+              color: 'text-blue-400',
+            },
+            {
+              icon: Users,
+              title: 'Your people',
+              desc: 'Follow friends and creators. See their posts, not algorithm bait.',
+              color: 'text-violet-400',
+            },
+            {
+              icon: BookOpen,
+              title: 'Stories',
+              desc: 'Share moments from your day that disappear after 24 hours — no pressure.',
+              color: 'text-pink-400',
+            },
+            {
+              icon: Compass,
+              title: 'Explore',
+              desc: 'Discover trending posts, new people, and topics you actually care about.',
+              color: 'text-cyan-400',
+            },
+            {
+              icon: Globe,
+              title: 'Groups',
+              desc: 'Create or join communities around any interest — public or private.',
+              color: 'text-emerald-400',
+            },
+            {
+              icon: Zap,
+              title: 'Fast & clean',
+              desc: 'No ads. No bloat. Just a fast, clean experience that gets out of your way.',
+              color: 'text-amber-400',
+            },
           ].map((f, i) => (
             <div
               key={i}
-              className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl group hover:bg-white/10 transition-all duration-300 animate-in fade-in slide-in-from-bottom-8 duration-700"
-              style={{ animationDelay: `${500 + i * 150}ms`, animationFillMode: 'both' }}
+              className="p-6 rounded-2xl bg-white/3 border border-white/8 hover:bg-white/6 hover:border-white/15 transition-all duration-300 group"
             >
-              <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 mb-6 group-hover:scale-110 transition-transform">
+              <div className={`mb-4 ${f.color}`}>
                 <f.icon className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold mb-3">{f.title}</h3>
+              <h3 className="text-base font-semibold text-white mb-2">{f.title}</h3>
               <p className="text-slate-400 text-sm leading-relaxed">{f.desc}</p>
             </div>
           ))}
         </div>
+
+        {/* Bottom CTA */}
+        <div className="mt-24 text-center">
+          <div className="inline-block p-px rounded-3xl bg-gradient-to-r from-indigo-500/30 to-violet-500/30">
+            <div className="px-12 py-10 rounded-3xl bg-[#050508]">
+              <h2 className="text-3xl font-bold mb-3">Ready to join?</h2>
+              <p className="text-slate-400 mb-7 text-sm">It takes less than a minute to get started.</p>
+              <Link
+                href="/register"
+                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-all"
+              >
+                Create free account <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-white/5 py-12 px-6 lg:px-12 bg-black/40 mt-20">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 text-sm text-slate-500">
+      <footer className="relative z-10 border-t border-white/6 py-10 px-6">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-6 text-sm text-slate-500">
           <div className="flex items-center gap-2">
-             <div className="w-6 h-6 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-xs">V</div>
-             <span>Vertex Private Social Alpha © 2026</span>
+            <div className="w-6 h-6 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-xs">V</div>
+            <span>Vertex © 2026</span>
           </div>
-          <div className="flex gap-8">
-            <a href="#" className="hover:text-indigo-400 transition-colors">Privacy Infrastructure</a>
-            <a href="#" className="hover:text-indigo-400 transition-colors">Security Terms</a>
-            <a href="#" className="hover:text-indigo-400 transition-colors">Compliance</a>
+          <div className="flex gap-6">
+            <Link href="/privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-slate-300 transition-colors">Terms of Service</Link>
+            <Link href="/compliance" className="hover:text-slate-300 transition-colors">Compliance</Link>
           </div>
         </div>
       </footer>

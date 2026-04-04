@@ -10,14 +10,20 @@ const crypto = require('crypto');
  */
 
 const ALGORITHM = 'aes-256-cbc';
-const SECRET_KEY = 'vertex-at-rest-secret-2025-01-01'; // Matches src/lib/dbEncryption.ts
 const IV_LENGTH = 16;
 
+function getKey() {
+  require('dotenv').config({ path: '.env.local' });
+  require('dotenv').config();
+  const secret = process.env.NEXTAUTH_SECRET || 'vertex-fallback-key-dev-only-2026';
+  return crypto.createHash('sha256').update(secret).digest();
+}
+
 function encryptAtRest(text) {
+  const key = getKey();
   const iv = crypto.randomBytes(IV_LENGTH);
-  const cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(SECRET_KEY.slice(0, 32)), iv);
-  let encrypted = cipher.update(text);
-  encrypted = Buffer.concat([encrypted, cipher.final()]);
+  const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
+  const encrypted = Buffer.concat([cipher.update(text, 'utf8'), cipher.final()]);
   return iv.toString('hex') + ':' + encrypted.toString('hex');
 }
 
