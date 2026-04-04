@@ -19,13 +19,21 @@ export async function POST(req: NextRequest) {
 
     // Check existing user
     const encryptedEmail = encryptAtRest(email);
-    const existing = await runSingleQuery(
+    const existingResult = await runSingleQuery<{ u: { verified: boolean } }>(
       'MATCH (u:User) WHERE u.email = $email OR u.username = $username RETURN u',
       { email: encryptedEmail, username }
     );
 
-    if (existing) {
-      return NextResponse.json({ error: 'Email or username already taken' }, { status: 409 });
+    if (existingResult && existingResult.u) {
+      if (existingResult.u.verified) {
+        return NextResponse.json({ error: 'Email or username already taken' }, { status: 409 });
+      } else {
+        // User exists but has not verified their email. Delete the old unverified record to allow fresh registration.
+        await runWriteQuery(
+          'MATCH (u:User) WHERE (u.email = $email OR u.username = $username) AND u.verified = false DETACH DELETE u',
+          { email: encryptedEmail, username }
+        );
+      }
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
