@@ -154,19 +154,26 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-[#050508] relative overflow-hidden">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-600/10 blur-[120px] rounded-full pointer-events-none" />
+      {/* Futuristic Moving Gradient Mesh Background */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] rounded-full bg-gradient-to-r from-indigo-600/30 via-violet-600/30 to-fuchsia-600/30 blur-[120px] mix-blend-screen animate-pulse" style={{ animationDuration: '8s' }} />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-gradient-to-r from-blue-600/20 via-cyan-600/20 to-indigo-600/20 blur-[100px] mix-blend-screen animate-pulse" style={{ animationDuration: '6s', animationDelay: '2s' }} />
+        {/* Subtle glowing grid overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,#000_10%,transparent_100%)]" />
+      </div>
 
-      <div className="w-full max-w-md relative z-10 animate-in fade-in zoom-in duration-500">
+      <div className="w-full max-w-md relative z-10 animate-in fade-in zoom-in duration-700">
         {/* Logo */}
-        <div className="text-center mb-7">
-          <Link href="/" className="inline-flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-indigo-500/25">V</div>
-            <span className="text-xl font-bold text-white">Vertex</span>
+        <div className="text-center mb-8">
+          <Link href="/" className="inline-flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white font-bold text-xl shadow-[0_0_30px_rgba(99,102,241,0.5)] border border-white/20 backdrop-blur-md">V</div>
+            <span className="text-2xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white to-white/60">Vertex</span>
           </Link>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/3 backdrop-blur-xl p-7 shadow-2xl">
-          <h1 className="text-2xl font-bold mb-1 text-white">Create your account</h1>
+        <div className="rounded-3xl border border-white/10 bg-black/40 backdrop-blur-2xl p-8 shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <h1 className="text-2xl font-bold mb-2 text-white/90">Create your account</h1>
           <p className="text-slate-400 text-sm mb-7">Join Vertex — it's free.</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
