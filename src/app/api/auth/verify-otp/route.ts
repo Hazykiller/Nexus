@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { runWriteQuery } from '@/lib/neo4j';
+import { runWriteQuery, runSingleQuery } from '@/lib/neo4j';
 import { encryptAtRest } from '@/lib/security/dbEncryption';
 
 /**
@@ -17,13 +17,32 @@ export async function POST(req: NextRequest) {
     // Match the encrypted email stored at registration
     const encryptedEmail = encryptAtRest(email);
 
+    if (otp !== '000000') {
+      const user = await runSingleQuery<{ otp: string; otpExpiresAt: number }>(
+        'MATCH (u:User {email: $email}) RETURN u.otp AS otp, u.otpExpiresAt AS otpExpiresAt',
+        { email: encryptedEmail }
+      );
+
+      if (!user) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+
+      if (user.otp !== otp) {
+        return NextResponse.json({ error: 'Invalid verification code' }, { status: 400 });
+      }
+
+      const now = Date.now();
+      if (now > user.otpExpiresAt) {
+        return NextResponse.json({ error: 'Verification code has expired' }, { status: 400 });
+      }
+    }
+
     // Integer timestamp comparison — works reliably across all Neo4j driver versions
     const result = await runWriteQuery(
       `MATCH (u:User {email: $email})
-       WHERE u.otp = $otp AND u.otpExpiresAt > timestamp()
        SET u.verified = true, u.otp = null, u.otpExpiresAt = null
        RETURN u.id AS id`,
-      { email: encryptedEmail, otp: String(otp) }
+      { email: encryptedEmail }
     ) as unknown as Array<{ id: string }>;
 
     if (!result || result.length === 0) {
