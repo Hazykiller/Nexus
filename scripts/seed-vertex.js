@@ -1,11 +1,18 @@
-const { runWriteQuery } = require('../src/lib/neo4j');
+const neo4j = require('neo4j-driver');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const crypto = require('crypto');
+require('dotenv').config({ path: '.env.local' });
+require('dotenv').config();
+
+const uri = process.env.NEO4J_URI;
+const username = process.env.NEO4J_USERNAME;
+const password = process.env.NEO4J_PASSWORD;
+const driver = neo4j.driver(uri, neo4j.auth.basic(username, password));
 
 /**
- * Vertex 'Airtight' Persona Seeder.
- * Generates 4 distinct test accounts with Tiered Access and encrypted metadata.
+ * Vertex Test Accounts Seeder
+ * Generates test accounts with encryped emails and IDs.
  * Passwords for all: 'Password123!'
  */
 
@@ -13,8 +20,6 @@ const ALGORITHM = 'aes-256-cbc';
 const IV_LENGTH = 16;
 
 function getKey() {
-  require('dotenv').config({ path: '.env.local' });
-  require('dotenv').config();
   const secret = process.env.NEXTAUTH_SECRET || 'vertex-fallback-key-dev-only-2026';
   return crypto.createHash('sha256').update(secret).digest();
 }
@@ -28,6 +33,7 @@ function encryptAtRest(text) {
 }
 
 async function seed() {
+  const session = driver.session();
   const hashedPassword = await bcrypt.hash('Password123!', 12);
   
   const personas = [
@@ -48,7 +54,7 @@ async function seed() {
     const encryptedEmail = encryptAtRest(p.email);
     const encryptedDob = encryptAtRest(p.dob);
 
-    await runWriteQuery(
+    await session.run(
       `MERGE (u:User {email: $email})
        ON CREATE SET
          u.id = $id,
@@ -81,6 +87,8 @@ async function seed() {
   }
 
   console.log('\n✨ Database Seeding Complete.');
+  await session.close();
+  await driver.close();
   process.exit(0);
 }
 

@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   try {
     const { name, username, email, password, dob } = await req.json();
 
-    if (!name || !username || !email || !password) {
+    if (!name || !username || !email || !password || !dob) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
     }
 
@@ -80,8 +80,14 @@ export async function POST(req: NextRequest) {
     );
 
     return NextResponse.json({ success: true, message: 'OTP sent', email }, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Registration error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    
+    // Check for Neo4j specific errors (e.g., SessionExpired from paused free tier)
+    if (error.message && error.message.includes('SessionExpired')) {
+      return NextResponse.json({ error: 'Database is waking up. Please try again in a few seconds.' }, { status: 503 });
+    }
+    
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
   }
 }
