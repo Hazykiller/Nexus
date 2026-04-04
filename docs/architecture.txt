@@ -1,0 +1,78 @@
+=========================================================
+  VERTEX SOCIAL NETWORK: CORE ARCHITECTURE & DATA FLOW
+=========================================================
+This document explains the full journey of a piece of data 
+as it travels from the User Interface (Frontend) -> 
+to the Next.js Server (Backend) -> 
+and finally into Neo4j (Database).
+
+We will use the example of "Liking a Post".
+
+=========================================================
+ 1. THE FRONTEND (React Component)
+ Location: src/components/feed/PostCard.tsx
+=========================================================
+This is what the user clicks in the browser. It sends an 
+HTTP request to our backend API.
+
+```tsx
+'use client';
+
+export function PostCard({ post }) {
+  const handleLike = async () => {
+    try {
+      const res = await fetch(`/api/posts/${post.id}/like`, { 
+        method: 'POST' 
+      });
+
+      if (res.ok) {
+        setIsLiked(true);
+        setLikesCount(prev => prev + 1);
+      }
+    } catch (error) {
+      console.error("Failed to like post", error);
+    }
+  };
+
+  return <button onClick={handleLike}>Like Post</button>;
+}
+```
+
+=========================================================
+ 2. THE BACKEND API ROUTE (Next.js Server API)
+ Location: src/app/api/posts/[id]/like/route.ts
+=========================================================
+This code lives on the server. It receives the fetch request, 
+validates the session, and triggers the database query.
+
+```typescript
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { runWriteQuery } from '@/lib/neo4j';
+
+export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const query = `
+    MATCH (u:User {id: $userId})
+    MATCH (p:Post {id: $postId})
+    MERGE (u)-[r:LIKES]->(p)
+    ON CREATE SET r.createdAt = datetime(), p.likesCount = p.likesCount + 1
+    RETURN p.likesCount
+  `;
+
+  await runWriteQuery(query, { userId: session.user.id, postId: params.id });
+  return NextResponse.json({ success: true });
+}
+```
+
+=========================================================
+ 3. THE DATABASE DRIVER (Neo4j Connection)
+ Location: src/lib/neo4j.ts
+=========================================================
+The engine that logs into AuraDB and sends the Cypher command.
+
+---
+**Vertex — Connect with Airtight Integrity.**

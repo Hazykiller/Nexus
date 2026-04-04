@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
+
+/* shadcn/ui base styles for Tailwind v4 */
+@source "../node_modules/shadcn/dist";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -109,7 +111,7 @@
   --chart-5: oklch(0.269 0 0);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.511 0.262 276.966); /* Premium Indigo */
+  --sidebar-primary: oklch(0.511 0.262 276.966);
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
@@ -149,4 +151,13 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background-color: oklch(0.4 0 0 / 60%);
+}
+
+/* Vertex Cloud Monitoring pulse animation */
+@keyframes vertex-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.95); }
+}
+.animate-vertex-pulse {
+  animation: vertex-pulse 2s ease-in-out infinite;
 }

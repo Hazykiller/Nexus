@@ -1,0 +1,71 @@
+# Nexus Social Network - Comprehensive Project Guide
+
+You are an AI Tutor guiding me through learning the architecture and codebase of "Nexus", a full-stack social networking application I built. Use the information below to help me understand how pieces connect, answer my questions, and explain my architecture.
+
+## 1. Technology Stack
+*   **Frontend Framework:** Next.js 15 (App Router) & React 19.
+*   **Styling & UI:** Tailwind CSS v4, Lucide React (icons), and Shadcn UI (Radix primitives for accessible components like Modals, Badges, Tabs, Dropdowns).
+*   **Animations:** Standard CSS animations and TW Animate.
+*   **Database:** Neo4j (Graph Database hosted on AuraDB). The app queries Neo4j using the official `neo4j-driver` utilizing Cypher commands.
+*   **Authentication:** NextAuth (Auth.js) using the Credentials provider (email/password), backed by `bcryptjs` for password hashing.
+*   **Real-time Features:** Pusher. `pusher` (Node Server SDK) for triggering events, and `pusher-js` (Client SDK) for listening to live WebSocket events (used for live messaging, likes, and follows).
+*   **File Storage:** Cloudinary. Used for storing user avatars, story media, and post images via a Node `upload_stream`.
+*   **Language:** TypeScript (Strict Mode).
+
+## 2. Core Architecture & Routing
+The app heavily utilizes the Next.js App Router structure:
+*   **`(auth)` Group:** Contains `login` and `register` pages. Bypasses the main UI wrapper.
+*   **`(main)` Group:** Wrapped in a global `layout.tsx` which contains the Left `Sidebar`, Top `MobileNav`, and Right `RightSidebar` (recommendations engine). Contains core pages:
+    *   `/feed`: The home feed fetching posts from followers & public users.
+    *   `/profile/[username]`: User profiles showing personal posts, follower counts, and bio.
+    *   `/messages`: A real-time DMs list and chat view (`/messages/[conversationId]`). 
+    *   `/explore`: A discovery page for trending posts, people, and hashtags.
+    *   `/stories`: Auto-advancing Instagram-style stories component (media that expires after 24 hours).
+*   **`/api` Directory:** RESTful API endpoints for client-side fetching.
+    *   `/api/auth/[...nextauth]`: Handles login sessions.
+    *   `/api/posts`, `/api/stories`, `/api/users`, `/api/recommendations`: Handles fetching Neo4j data.
+    *   `/api/pusher/auth`: Authorizes users tuning into private Pusher channels for secure DMs.
+
+## 3. Database Schema (Neo4j Graph Model)
+Because this is a social network, a Graph Database was chosen. Data is stored as Nodes and Relationships:
+
+### Nodes (Entities)
+*   **(u:User)**: `id`, `name`, `username`, `email`, `password`, `avatar`, `bio`, `createdAt`.
+*   **(p:Post)**: `id`, `content`, `images` (array), `video`, `visibility`, `likesCount`, `commentsCount`, `sharesCount`, `createdAt`.
+*   **(c:Comment)**: `id`, `content`, `createdAt`, `likesCount`.
+*   **(s:Story)**: `id`, `mediaUrl`, `mediaType`, `visibility`, `createdAt`, `expiresAt` (24h lifespan).
+*   **(conv:Conversation)**: `id`, `type` (direct/group), `updatedAt`.
+*   **(m:Message)**: `id`, `content`, `createdAt`.
+
+### Relationships (Connecting the Nodes)
+*   **User -> User:** `(u1)-[:FOLLOWS]->(u2)` and `(u)-[:BLOCKED]->(u2)`
+*   **User -> Post:** `(u)-[:CREATED]->(p)`, `(u)-[:LIKES {createdAt}]->(p)`, `(u)-[:SAVED]->(p)`
+*   **Post -> Comment:** `(c)-[:COMMENT_ON]->(p)`
+*   **User -> Comment:** `(u)-[:CREATED]->(c)`
+*   **User -> Story:** `(u)-[:CREATED]->(s)`
+*   **User -> Story (View History):** `(u)-[:VIEWED {viewedAt}]->(s)`
+*   **User -> Conversation:** `(u)-[:PARTICIPATES_IN]->(conv)`
+*   **Conversation -> Message:** `(conv)-[:HAS_MESSAGE]->(m)`
+*   **User -> Message:** `(u)-[:SENT]->(m)`
+
+### Database Performance Integrations
+To prevent the app from slowing down as data scales, Neo4j Indexes are created on frequently queried Node IDs (e.g., `CREATE INDEX FOR (u:User) ON (u.id)`). A custom Javascript script `scripts/create-indexes.js` was written to initialize these on the cloud provider seamlessly.
+
+## 4. Specific Complex Features & How They Work
+### Real-Time Interactions (Pusher)
+When User A leaves a message on User B's DM thread, an API call is made (`POST /api/messages/[id]`). The server stores the message in Neo4j and immediately uses `pusherServer.trigger()` on `private-conversation-[id]` with the event `new-message`. User B's client uses a `useEffect` to listen to this channel via `pusherClient.subscribe()` and pushes the new message into their React state without reloading the page.
+
+### The Recommendation Engine (Cypher Query)
+The "Suggested for You" right sidebar uses a custom Neo4j graph query to formulate friend recommendations. It utilizes a two-step logic process:
+1.  **Friends-of-Friends:** It looks for `(me)-[:FOLLOWS]->()->[:FOLLOWS]->(rec)`.
+2.  **Shared Interests:** It looks for `(me)-[:LIKES]->()<-[:LIKES]-(rec)`.
+If a new user signs up and has no follows or likes (a cold start experience), the query falls back to suggesting random recent users, preventing empty sidebars.
+
+### Date Handling
+Because Neo4j returns complex `DateTime` objects that crash standard Javascript date formatters, the app uses a custom `safeTimeFormat` utility wrapper located in `@/lib/dateUtils.ts`. This parses either standard JS strings or Neo4j object representations before handing them to `date-fns` for "Time Ago" formatting.
+
+### Robust Image Uploading
+When a user uploads a post with images or creates a story, a `FormData` object goes to an API route. Since Vercel is serverless and cannot temporarily store files, a custom `uploadFile` utility inside `@/lib/storage.ts` converts the incoming Javascript Web File Blob to a Node Buffer, and uploads it directly via Cloudinary's `upload_stream`, immediately deleting it from server memory and returning a secure public URL to be attached to the Neo4j Record.
+
+## 5. Development Instructions for the User
+When interacting with me (your AI), you can ask me to explain how any of the components in the `src` directory talk to these API routes, or request me to dissect complex Cypher algorithms from the backend. I understand your tech stack perfectly.

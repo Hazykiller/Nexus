@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { runQuery, runWriteQuery } from '@/lib/neo4j';
 import { v4 as uuidv4 } from 'uuid';
 
-import { encryptMessage, decryptMessage } from '@/lib/encryption';
+import { encryptMessage, decryptMessage } from '@/lib/security/encryption';
 
 export async function GET(req: NextRequest) {
   try {

@@ -5,8 +5,8 @@ import { runQuery, runWriteQuery } from '@/lib/neo4j';
 import { getPusherServer, channels, events } from '@/lib/pusher';
 import { v4 as uuidv4 } from 'uuid';
 
-import { encryptMessage, decryptMessage } from '@/lib/encryption';
-import { logSecurityEvent } from '@/lib/security';
+import { encryptMessage, decryptMessage } from '@/lib/security/encryption';
+import { logSecurityEvent } from '@/lib/security/security';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ conversationId: string }> }) {
   try {

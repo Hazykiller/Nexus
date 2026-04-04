@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { runWriteQuery } from '@/lib/neo4j';
-import { logSecurityEvent } from '@/lib/security';
+import { logSecurityEvent } from '@/lib/security/security';
 
 export async function DELETE(req: NextRequest) {
   try {

@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
         verified: false,
         isAdmin: false,
         otp: $otp,
-        otpExpiresAt: datetime() + duration({minutes: 15}),
+        otpExpiresAt: timestamp() + 900000,
         createdAt: datetime(),
         updatedAt: datetime()
       })`,

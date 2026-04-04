@@ -10,6 +10,7 @@ interface AuthUser {
   image?: string;
   username: string;
   verified: boolean;
+  isAdmin: boolean;
 }
 
 export function useAuth() {
@@ -25,8 +26,10 @@ export function useAuth() {
       image: u.image as string | undefined,
       username: u.username as string,
       verified: u.verified as boolean,
+      isAdmin: u.isAdmin as boolean ?? false,
     };
   }, [session]);
+
 
   return {
     user,

@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Cloud } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 
 // ForceGraph2D requires browser canvas — must be dynamically imported (no SSR)
 const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), { ssr: false });
@@ -138,6 +139,12 @@ export default function AdminGraphDashboard() {
           Vertex Admin — Neo4j Global Operations
         </h1>
         <p className="text-gray-400 text-sm mt-1">Live visualization of the social network graph database</p>
+        <Link
+          href="/admin/monitor"
+          className="mt-3 inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold hover:bg-cyan-500/20 transition-all pointer-events-auto"
+        >
+          <Cloud className="w-3.5 h-3.5" /> Cloud Monitor
+        </Link>
       </div>
 
       {/* Stats Bar */}

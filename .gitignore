@@ -34,28 +34,23 @@ yarn-error.log*
 # env files
 .env
 .env.local
+.env*.local
 
 # vercel
 .vercel
 
-# typescript
+# typescript build artifacts (auto-generated)
 *.tsbuildinfo
 next-env.d.ts
 
-# database seed scripts (local only)
-init.cypher
+# local-only scripts / seed files
+tmp/
+scripts/setup_db.js
 
-# AI agent files
-# AI agent files
+# lint output
+lint_output.txt
+*.log
+
+# AI agent temp files
 AGENTS.md
 CLAUDE.md
-
-# Vertex Airtight Security: Local-Only and Prototype Files
-.env*
-tmp/
-*.txt
-*.cypher
-scripts/setup_db.js
-*.log
-.vercel
-tsconfig.tsbuildinfo

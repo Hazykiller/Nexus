@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { runWriteQuery } from '@/lib/neo4j';
 import bcrypt from 'bcryptjs';
-import { logSecurityEvent } from '@/lib/security';
+import { logSecurityEvent } from '@/lib/security/security';
 
 /**
  * Airtight Admin Recovery API.

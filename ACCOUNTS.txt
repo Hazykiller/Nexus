@@ -1,0 +1,26 @@
+# Vertex 'Airtight' Test Personas
+
+Use these credentials to test the Vertex platform. All passwords are set to 'Password123!' for your testing convenience.
+
+---
+
+## 🛡️ Master Admin Account
+- **Email**: admin@vertex.social
+- **Status**: Master Access (Global Firewall Immune)
+- **Role**: Platform Guardian
+
+## 💎 Adult Accounts (18+)
+- **Email 1**: adult1@vertex.social
+- **Email 2**: adult2@vertex.social
+- **Email 3**: adult3@vertex.social
+- **Email 4**: adult4@vertex.social
+- **Status**: Full Access
+
+## 🛡️ Restricted Child Accounts (13-18)
+- **Email 1**: teen1@vertex.social
+- **Email 2**: teen2@vertex.social
+- **Email 3**: teen3@vertex.social
+- **Status**: Restricted Access (Safe Space Mode Active)
+
+---
+**Vertex — Connect with Airtight Integrity.**

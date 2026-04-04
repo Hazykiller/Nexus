@@ -1,7 +1,5 @@
 /**
- * [DEPRECATED] Vertex Legacy Encryption Module.
- * MIGRATED TO: @/lib/security/encryption.ts
- * 
- * Please delete this file and update all imports to the 'Airtight' security hub.
+ * Re-export shim – canonical module moved to @/lib/security/encryption
+ * This file exists for backwards-compatibility only.
  */
-export const MIGRATED = true;
+export { encryptMessage, decryptMessage } from './security/encryption';

@@ -18,6 +18,8 @@ import {
   LogOut,
   Moon,
   Sun,
+  ShieldAlert,
+  Network,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { signOut } from 'next-auth/react';
@@ -91,6 +93,33 @@ export function Sidebar() {
             </Link>
           );
         })}
+
+        {/* Admin Link - only for admin users */}
+        {user?.isAdmin && (
+          <Link
+            href="/admin"
+            title="Admin Console"
+            className="flex items-center gap-4 px-3 py-3 rounded-xl text-sm font-medium text-red-400/70 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200 border border-transparent hover:border-red-500/20"
+          >
+            <ShieldAlert className="w-6 h-6 shrink-0" />
+            <span className="hidden xl:block">Admin Console</span>
+          </Link>
+        )}
+
+        {/* Constellation Link */}
+        <Link
+          href="/explore/constellation"
+          title="My Constellation"
+          className={cn(
+            'flex items-center gap-4 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 group',
+            pathname.startsWith('/explore/constellation')
+              ? 'bg-gradient-to-r from-indigo-500/15 to-violet-500/15 text-indigo-400'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+          )}
+        >
+          <Network className="w-6 h-6 shrink-0 transition-transform group-hover:scale-110" />
+          <span className="hidden xl:block">Constellation</span>
+        </Link>
 
         {/* Create Post Modal */}
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>

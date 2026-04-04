@@ -4,7 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { runQuery, runWriteQuery } from '@/lib/neo4j';
 import { v4 as uuidv4 } from 'uuid';
 import { uploadFile } from '@/lib/storage';
-import { isContentSafe } from '@/lib/security/moderation';
+import { runGuardBot } from '@/lib/security/guardbot';
+import { logSecurityEvent } from '@/lib/security/security';
 
 export async function GET(req: NextRequest) {
   try {
@@ -276,11 +277,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Post must have content or media' }, { status: 400 });
     }
 
-    // Vertex Airtight: Proactive Content Moderation
+    // Vertex GuardBot — Real-time NSFW & Toxicity Scan
     if (content) {
-      const moderation = isContentSafe(content);
-      if (!moderation.isSafe) {
-        return NextResponse.json({ error: moderation.reason }, { status: 422 });
+      const guard = runGuardBot(content);
+      if (guard.shouldDelete) {
+        // Log the blocked post as a security event
+        await logSecurityEvent(
+          'moderation_breach',
+          `GuardBot blocked ${guard.severity} post: [${guard.category}] ${guard.reason}`,
+          userId
+        );
+        return NextResponse.json(
+          { error: `Content blocked by Vertex GuardBot: ${guard.reason}` },
+          { status: 422 }
+        );
+      }
+      if (guard.shouldWarn) {
+        // Flag for admin review but allow through
+        await logSecurityEvent(
+          'moderation_breach',
+          `GuardBot flagged ${guard.severity} post for review: [${guard.category}]`,
+          userId
+        );
       }
     }
 
