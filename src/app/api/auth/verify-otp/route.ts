@@ -37,15 +37,15 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Integer timestamp comparison — works reliably across all Neo4j driver versions
-    const result = await runWriteQuery(
+    // Execute the verification and capture the result to confirm it worked
+    const result = await runSingleQuery<{ id: string }>(
       `MATCH (u:User {email: $email})
        SET u.verified = true, u.otp = null, u.otpExpiresAt = null
        RETURN u.id AS id`,
       { email: encryptedEmail }
-    ) as unknown as Array<{ id: string }>;
+    );
 
-    if (!result || result.length === 0) {
+    if (!result || !result.id) {
       return NextResponse.json(
         { error: 'Invalid or expired verification code. Codes expire after 15 minutes.' },
         { status: 400 }

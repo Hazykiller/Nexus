@@ -172,7 +172,7 @@ export default function RegisterPage() {
         </div>
 
         <div className="rounded-3xl border border-white/10 bg-black/40 backdrop-blur-2xl p-8 shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
           <h1 className="text-2xl font-bold mb-2 text-white/90">Create your account</h1>
           <p className="text-slate-400 text-sm mb-7">Join Vertex — it's free.</p>
 
