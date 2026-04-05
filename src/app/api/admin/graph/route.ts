@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 import { runQuery } from '@/lib/neo4j';
-
-async function isAdminAuthorized(): Promise<boolean> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('admin_session')?.value;
-  const valid = process.env.ADMIN_SESSION_TOKEN || 'vertex-admin-secret-token-2025';
-  return token === valid;
-}
 
 export async function GET(req: NextRequest) {
   try {
-    if (!(await isAdminAuthorized())) {
+    const session = await getServerSession(authOptions);
+    if (!session || !(session.user as any)?.isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

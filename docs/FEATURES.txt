@@ -262,6 +262,31 @@ Developer:
   GET  /api/test-db            — Database connectivity test
 
 ==============================================================================
+  CLOUD COMPUTING SYLLABUS MAPPING
+==============================================================================
+
+This project explicitly implements the following advanced cloud architecture 
+features from the CS Syllabus:
+
+1. Item #13 (Simple Cloud ChatBot)
+   - Feature: A Serverless GenZ-styled AI Chat Assistant.
+   - Cloud Concept: Edge computing and serverless execution orchestration.
+
+2. Item #9 (Cloud Monitoring, Logging & Tracing)
+   - Feature: Vertex Admin Telemetry Dashboard.
+   - Cloud Concept: Performance indexing, unauthorized access logging, and 
+     real-time graph database telemetry aggregation.
+
+3. Item #11 (Cloud Security Best Practices)
+   - Feature: AES-256-CBC at-rest encryption & HMAC-SHA256 lookup hashing.
+   - Cloud Concept: Securing PII (Personally Identifiable Information) natively 
+     at the cloud storage layer.
+
+4. Item #14 (Study & Analysis of Real-Time Cloud Apps)
+   - Feature: Real-time Messaging and Notification WebSocket pipelines.
+   - Cloud Concept: Scalable publish-subscribe messaging using remote nodes.
+
+==============================================================================
   TEST ACCOUNTS
 ==============================================================================
 

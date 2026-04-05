@@ -11,6 +11,7 @@ import { MoveLeft, Send, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 import { safeTimeFormat } from '@/lib/dateUtils';
 import { getPusherClient, channels, events } from '@/lib/pusher';
+import { CldUploadWidget } from 'next-cloudinary';
 
 interface Message {
   id: string;
@@ -218,14 +219,27 @@ export default function ChatViewPage() {
 
       {/* Input Area */}
       <form onSubmit={handleSendMessage} className="p-3 bg-card border-t border-border mt-auto shrink-0 flex gap-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="shrink-0 text-muted-foreground hover:text-cyan-400 hover:bg-cyan-400/10 rounded-full"
+        <CldUploadWidget
+          uploadPreset="vertex_social"
+          onSuccess={(result: any) => {
+            const url = result?.info?.secure_url;
+            if (url) {
+              setInputText(prev => prev + (prev ? '\n' : '') + url);
+            }
+          }}
         >
-          <ImageIcon className="w-5 h-5" />
-        </Button>
+          {({ open }: { open: () => void }) => (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => open()}
+              className="shrink-0 text-muted-foreground hover:text-cyan-400 hover:bg-cyan-400/10 rounded-full"
+            >
+              <ImageIcon className="w-5 h-5" />
+            </Button>
+          )}
+        </CldUploadWidget>
         <Input
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}

@@ -5,10 +5,10 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
 /**
- * Animated Futuristic Background Component
- * Draws a moving hyperspace starfield and connecting nodes.
+ * Epic 3D Interactive Nexus Sphere
+ * Projects 3D mathematical coordinates into a 2D canvas simulation.
  */
-function ParticleBackground() {
+function InteractiveNexusCore() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -22,51 +22,107 @@ function ParticleBackground() {
     canvas.width = width;
     canvas.height = height;
 
-    const particles: { x: number; y: number; r: number; vx: number; vy: number }[] = [];
-    for (let i = 0; i < 80; i++) {
-      particles.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        r: Math.random() * 2 + 0.5,
-        vx: (Math.random() - 0.5) * 1.5,
-        vy: (Math.random() - 0.5) * 1.5,
-      });
+    const numPoints = 350;
+    const radius = Math.min(width, height) * 0.45;
+    
+    interface Point3D {
+      x: number; y: number; z: number;
+      origX: number; origY: number; origZ: number;
+    }
+    
+    const points: Point3D[] = [];
+    
+    // Generate points on a sphere using Fibonacci lattice
+    const phi = Math.PI * (3 - Math.sqrt(5));
+    for (let i = 0; i < numPoints; i++) {
+      const y = 1 - (i / (numPoints - 1)) * 2;
+      const r = Math.sqrt(1 - y * y);
+      const theta = phi * i;
+      
+      const x = Math.cos(theta) * r;
+      const z = Math.sin(theta) * r;
+      
+      points.push({ x: x * radius, y: y * radius, z: z * radius, origX: x * radius, origY: y * radius, origZ: z * radius });
     }
 
-    let animationFrameId: number;
+    let rotationX = 0;
+    let rotationY = 0;
+    let targetRotationX = 0.002;
+    let targetRotationY = 0.002;
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      const centerX = width / 2;
+      const centerY = height / 2;
+      // Mouse drives rotation speed and direction
+      targetRotationY = (e.clientX - centerX) * 0.00005;
+      targetRotationX = (e.clientY - centerY) * 0.00005;
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove);
+
+    let animationId: number;
+    const fov = 800;
 
     const render = () => {
-      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = '#050508';
+      ctx.fillRect(0, 0, width, height);
       
-      // Update & Draw Particles
-      ctx.fillStyle = 'rgba(167, 139, 250, 0.8)';
-      particles.forEach((p, i) => {
-        p.x += p.vx;
-        p.y += p.vy;
+      // Smooth interpolation towards target rotation
+      rotationX += (targetRotationX - (rotationX * 0.01));
+      rotationY += (targetRotationY - (rotationY * 0.01));
 
-        if (p.x < 0 || p.x > width) p.vx *= -1;
-        if (p.y < 0 || p.y > height) p.vy *= -1;
+      const cosX = Math.cos(rotationX);
+      const sinX = Math.sin(rotationX);
+      const cosY = Math.cos(rotationY);
+      const sinY = Math.sin(rotationY);
 
+      // Project and draw
+      const projected = points.map(p => {
+        // Rotate Y
+        const x1 = p.x * cosY - p.z * sinY;
+        const z1 = p.z * cosY + p.x * sinY;
+        // Rotate X
+        const y1 = p.y * cosX - z1 * sinX;
+        const z2 = z1 * cosX + p.y * sinX;
+        
+        // Update point state permanently
+        p.x = x1; p.y = y1; p.z = z2;
+
+        const scale = fov / (fov + z2);
+        const x2d = (x1 * scale) + width / 2;
+        const y2d = (y1 * scale) + height / 2;
+        
+        return { x: x2d, y: y2d, z: z2, scale };
+      });
+
+      // Sort by Z for proper depth rendering connecting lines
+      projected.sort((a, b) => b.z - a.z);
+
+      // Draw constellation lines (only close neighbors that are visible)
+      ctx.lineWidth = 0.6;
+      for (let i = 0; i < projected.length; i++) {
+        const p1 = projected[i];
+        if (p1.z > 200) continue; // Skip lines in far background to save perf
+
+        ctx.fillStyle = `rgba(34, 211, 238, ${Math.max(0.1, p1.scale * 0.8)})`;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.arc(p1.x, p1.y, p1.scale * 2.5, 0, Math.PI * 2);
         ctx.fill();
 
-        // Connect nearby particles
-        for (let j = i + 1; j < particles.length; j++) {
-          const p2 = particles[j];
-          const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
-          if (dist < 150) {
+        for (let j = i + 1; j < Math.min(i + 5, projected.length); j++) {
+          const p2 = projected[j];
+          const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+          if (dist < 100 * p1.scale) {
+            ctx.strokeStyle = `rgba(16, 185, 129, ${Math.max(0.05, (1 - dist / 100) * p1.scale * 0.5)})`;
             ctx.beginPath();
-            ctx.strokeStyle = `rgba(167, 139, 250, ${1 - dist / 150})`;
-            ctx.lineWidth = 0.5;
-            ctx.moveTo(p.x, p.y);
+            ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(p2.x, p2.y);
             ctx.stroke();
           }
         }
-      });
+      }
 
-      animationFrameId = requestAnimationFrame(render);
+      animationId = requestAnimationFrame(render);
     };
 
     render();
@@ -80,15 +136,17 @@ function ParticleBackground() {
     window.addEventListener('resize', handleResize);
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      cancelAnimationFrame(animationId);
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('mousemove', handleMouseMove);
     };
   }, []);
 
   return (
     <canvas 
       ref={canvasRef} 
-      className="fixed inset-0 pointer-events-none z-0"
+      className="fixed inset-0 z-0 bg-[#050508] transition-opacity duration-1000"
+      style={{ opacity: 0.85 }}
     />
   );
 }
@@ -97,7 +155,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#050508] text-white flex flex-col relative overflow-hidden">
       {/* Epic GenZ Animated Background */}
-      <ParticleBackground />
+      <InteractiveNexusCore />
       
       {/* Subtle glowing accents */}
       <div className="fixed inset-0 pointer-events-none z-0">

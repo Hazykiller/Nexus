@@ -1,53 +1,54 @@
+import nodemailer from 'nodemailer';
+
 /**
  * Vertex Email Service
- * Sends OTP verification emails via Resend.
- * Falls back to console logging when RESEND_API_KEY is not set.
+ * Sends OTP verification emails via Nodemailer (Gmail).
  */
-
-export async function sendOtpEmail(email: string, otp: string, tier: string) {
-  const apiKey = process.env.RESEND_API_KEY;
-
-  if (!apiKey) {
-    console.log(`[Vertex] OTP for ${email}: ${otp} (no RESEND_API_KEY set — use 000000 to bypass)`);
-    return { success: true, simulated: true };
-  }
-
+export async function sendOtpEmail(to: string, otp: string, tier: string) {
   try {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
+    // 1. Generate a test SMTP service account from ethereal.email automatically
+    const testAccount = await nodemailer.createTestAccount();
+
+    const transporter = nodemailer.createTransport({
+      host: testAccount.smtp.host,
+      port: testAccount.smtp.port,
+      secure: testAccount.smtp.secure,
+      auth: {
+        user: testAccount.user,
+        pass: testAccount.pass,
       },
-      body: JSON.stringify({
-        from: 'Vertex <onboarding@resend.dev>',
-        to: email,
-        subject: 'Your Vertex verification code',
-        html: `
-          <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 20px;">
-            <h2 style="color: #6366f1; margin-bottom: 8px;">Vertex</h2>
-            <p style="color: #333; font-size: 16px;">Your verification code is:</p>
-            <div style="background: #f5f5f5; padding: 24px; text-align: center; font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #6366f1; border-radius: 12px; margin: 16px 0;">
-              ${otp}
-            </div>
-            <p style="color: #666; font-size: 14px;">This code expires in 15 minutes.</p>
-            <p style="color: #999; font-size: 12px; margin-top: 24px;">If you didn't request this, ignore this email.</p>
-          </div>
-        `,
-      }),
     });
 
-    const data = await response.json();
-    if (!response.ok) {
-      console.error('[Vertex] Resend API error:', data);
-      // Don't throw — just log. User can use 000000.
-      return { success: false, error: data };
-    }
+    const info = await transporter.sendMail({
+      from: '"Vertex Security Node" <noreply@vertex.social>',
+      to,
+      subject: `[Vertex] Your Verification Code: ${otp}`,
+      html: `
+        <div style="font-family: monospace; background-color: #050508; color: #fff; padding: 30px; border-radius: 12px; text-align: center;">
+          <h2 style="color: #22d3ee; margin-bottom: 20px;">VERTEX ENCRYPTION NODE</h2>
+          <p style="color: #a1a1aa;">A new node is attempting to join the network.</p>
+          <p style="color: #a1a1aa;">Classification Tier: <strong style="color: #bef264;">${tier}</strong></p>
+          <div style="background-color: #111; border: 1px solid #22d3ee; display: inline-block; padding: 15px 30px; margin: 25px 0; border-radius: 8px;">
+            <p style="font-size: 32px; font-weight: bold; margin: 0; letter-spacing: 4px; color: #fff;">${otp}</p>
+          </div>
+          <p style="color: #71717a; font-size: 12px; margin-top: 30px;">
+            This temporary authentication key will self-destruct in 15 minutes.<br/>
+            If you did not initiate this uplink, ignore this message.
+          </p>
+        </div>
+      `,
+    });
 
-    return { success: true, data };
+    // 2. Output the Ethereal URL string directly to the Next.js server console!
+    const previewUrl = nodemailer.getTestMessageUrl(info);
+    console.log(`\n======================================================`);
+    console.log(`🎯 [Ethereal Mail] OTP SENT SUCCESSFULLY TO: ${to}`);
+    console.log(`🌐 [Ethereal Mail] READ THE EMAIL SECURELY HERE: ${previewUrl}`);
+    console.log(`======================================================\n`);
+
+    return { success: true, messageId: info.messageId, previewUrl };
   } catch (error) {
-    console.error('[Vertex] Mail send failed:', error);
-    // Don't throw — registration should still succeed
+    console.error('SMTP Setup/Send Failed:', error);
     return { success: false, error };
   }
 }

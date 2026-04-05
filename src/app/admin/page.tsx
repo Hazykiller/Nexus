@@ -39,7 +39,7 @@ export default function AdminGraphDashboard() {
         const res = await fetch('/api/admin/graph');
         
         if (res.status === 401) {
-          window.location.href = '/admin/login';
+          window.location.href = '/login';
           return;
         }
         
@@ -140,7 +140,7 @@ export default function AdminGraphDashboard() {
         </h1>
         <p className="text-gray-400 text-sm mt-1">Live visualization of the social network graph database</p>
         <Link
-          href="/admin/monitor"
+          href="/admin/telemetry"
           className="mt-3 inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold hover:bg-cyan-500/20 transition-all pointer-events-auto"
         >
           <Cloud className="w-3.5 h-3.5" /> Cloud Monitor
