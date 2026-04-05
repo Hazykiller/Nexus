@@ -1,9 +1,8 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
-import { runSingleQuery, runWriteQuery } from '@/lib/neo4j';
-import { v4 as uuidv4 } from 'uuid';
-import { encryptAtRest, decryptAtRest } from '@/lib/security/dbEncryption';
+import { runSingleQuery } from '@/lib/neo4j';
+import { decryptAtRest, hashForLookup } from '@/lib/security/dbEncryption';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -16,15 +15,20 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const encryptedEmail = encryptAtRest(credentials.email);
+        // Use the deterministic hash to find the user
+        const emailHash = hashForLookup(credentials.email);
         const result = await runSingleQuery<{
-          u: { id: string; email: string; username: string; name: string; password: string; avatar: string; verified: boolean; isAdmin?: boolean };
+          u: {
+            id: string; email: string; username: string; name: string;
+            password: string; avatar: string; verified: boolean; isAdmin?: boolean;
+          };
         }>(
-          'MATCH (u:User {email: $email}) RETURN u',
-          { email: encryptedEmail }
+          'MATCH (u:User {emailHash: $emailHash}) RETURN u',
+          { emailHash }
         );
 
         if (!result?.u) return null;
+        if (!result.u.verified) return null; // Must be verified to login
 
         const isValid = await bcrypt.compare(credentials.password, result.u.password);
         if (!isValid) return null;
@@ -43,21 +47,18 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: 'jwt',
-    maxAge: 1 * 60 * 60, // Reduced to 1 hour for Maximum Security
+    maxAge: 24 * 60 * 60, // 24 hours
   },
   jwt: {
-    maxAge: 15 * 60, // 15 minutes access token
+    maxAge: 24 * 60 * 60, // 24 hours
   },
   callbacks: {
-    async signIn({ user, account }) {
-      return true;
-    },
     async jwt({ token, user, trigger, session }) {
       if (user) {
-        token.id = (user as unknown as Record<string, unknown>).id as string;
-        token.username = (user as unknown as Record<string, unknown>).username as string;
-        token.verified = (user as unknown as Record<string, unknown>).verified as boolean;
-        token.isAdmin = (user as unknown as Record<string, unknown>).isAdmin as boolean;
+        token.id = (user as any).id;
+        token.username = (user as any).username;
+        token.verified = (user as any).verified;
+        token.isAdmin = (user as any).isAdmin;
       }
       if (trigger === 'update' && session) {
         token.name = session.name;
@@ -68,10 +69,10 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as unknown as Record<string, unknown>).id = token.id;
-        (session.user as unknown as Record<string, unknown>).username = token.username;
-        (session.user as unknown as Record<string, unknown>).verified = token.verified;
-        (session.user as unknown as Record<string, unknown>).isAdmin = token.isAdmin;
+        (session.user as any).id = token.id;
+        (session.user as any).username = token.username;
+        (session.user as any).verified = token.verified;
+        (session.user as any).isAdmin = token.isAdmin;
       }
       return session;
     },

@@ -1,0 +1,330 @@
+==============================================================================
+                    VERTEX SOCIAL NETWORK — FULL FEATURE LIST
+==============================================================================
+
+Project Name:     Vertex
+Type:             Full-Stack Social Network Web Application
+Live URL:         Deployed on Vercel (https://vercel.com)
+Repository:       GitHub (private)
+
+==============================================================================
+  TECH STACK & LANGUAGES
+==============================================================================
+
+Frontend:
+  - Next.js 16.2.1 (React 19) — Server-side rendering, API routes, file-based routing
+  - TypeScript — Primary language for all frontend and backend code
+  - Tailwind CSS v4 — Utility-first CSS framework
+  - Lucide React — Icon library
+  - Shadcn/UI — Component library (buttons, inputs, labels, etc.)
+  - Sonner — Toast notification system
+  - tw-animate-css — CSS animation library
+
+Backend:
+  - Next.js API Routes (serverless functions on Vercel)
+  - NextAuth.js v4 — Authentication (JWT sessions, credentials provider)
+  - bcryptjs — Password hashing (12 salt rounds)
+  - uuid — Unique ID generation for users, posts, etc.
+  - Zod — Schema validation
+
+Database:
+  - Neo4j AuraDB (Cloud) — Graph database for social relationships
+  - neo4j-driver v6 — Official Node.js driver
+  - Cypher Query Language — Used for all database operations
+
+Cloud Services & Infrastructure:
+  - Vercel — Hosting, serverless deployment, CI/CD from GitHub
+  - Neo4j AuraDB — Cloud-hosted graph database (free tier)
+  - Cloudinary — Cloud image/media storage and CDN
+  - Pusher — Real-time WebSocket messaging
+  - Resend — Transactional email service (OTP delivery)
+
+Security:
+  - AES-256-CBC encryption — Sensitive data encrypted at rest (emails, DOB)
+  - HMAC-SHA256 — Deterministic email hashing for secure database lookups
+  - bcrypt — Password hashing with 12-round salt
+  - JWT — Session tokens with 24-hour expiry
+  - OTP verification — 6-digit codes for email verification
+  - Age gating — Under-13 blocked, 13-17 restricted mode
+
+==============================================================================
+  CLOUD COMPUTING COMPONENTS
+==============================================================================
+
+1. Vercel (Platform-as-a-Service / PaaS)
+   - Automatic deployment from GitHub pushes
+   - Serverless functions for all API routes
+   - Edge network CDN for static assets
+   - Environment variable management
+   - Build & deploy pipeline (CI/CD)
+
+2. Neo4j AuraDB (Database-as-a-Service / DBaaS)
+   - Cloud-hosted graph database
+   - Auto-scaling and managed backups
+   - TLS-encrypted connections (neo4j+s://)
+   - Social graph: users, follows, posts, likes, comments as nodes/edges
+
+3. Cloudinary (Media-as-a-Service)
+   - Cloud image upload and storage
+   - Automatic image optimization and CDN delivery
+   - Avatar and cover photo hosting
+
+4. Pusher (Real-time Communication-as-a-Service)
+   - WebSocket-based real-time messaging
+   - Push notifications for new messages
+   - Presence channels for online status
+
+5. Resend (Email-as-a-Service)
+   - Transactional email delivery
+   - OTP code emails for account verification
+   - HTML email templates
+
+==============================================================================
+  APPLICATION FEATURES
+==============================================================================
+
+--- Authentication & Security ---
+
+1. User Registration
+   - Full name, username, email, password, date of birth
+   - Password strength validation (min 8 chars)
+   - Confirm password matching
+   - Age verification (must be 13+)
+   - Automatic restricted mode for users under 18
+   - OTP email verification (or 000000 bypass for testing)
+   - Unverified account cleanup (re-register over ghost accounts)
+
+2. User Login
+   - Email + password credentials
+   - bcrypt password verification
+   - JWT session tokens (24-hour expiry)
+   - Redirect to feed on success
+
+3. Data Encryption
+   - All emails encrypted at rest using AES-256-CBC
+   - All dates of birth encrypted at rest
+   - Deterministic HMAC-SHA256 hashing for email lookups
+   - Passwords hashed with bcrypt (never stored in plaintext)
+
+--- Social Features ---
+
+4. News Feed (/feed)
+   - Chronological post feed
+   - Create text posts
+   - Like and comment on posts
+   - Emoji picker integration
+   - Infinite scroll with intersection observer
+
+5. User Profiles (/profile/[username])
+   - Profile page with avatar, cover photo, bio
+   - Post history
+   - Follow/unfollow functionality
+   - Edit profile settings
+   - Public/private profile toggle
+
+6. Explore (/explore)
+   - Discover trending posts
+   - Find new people
+   - Browse by hashtags
+
+7. Stories (/stories)
+   - Ephemeral content (disappears after 24 hours)
+   - View stories from followed users
+
+8. Messaging (/messages)
+   - Real-time direct messaging via Pusher WebSockets
+   - Message threads
+   - Online presence indicators
+
+9. Groups (/groups)
+   - Create and join groups
+   - Group posts and discussions
+   - Public and private groups
+
+10. Notifications (/notifications)
+    - Follow notifications
+    - Like notifications
+    - Comment notifications
+    - Real-time via Pusher
+
+11. Search (/search)
+    - Search users by name/username
+    - Search posts by content
+    - Hashtag search
+
+12. Hashtags (/hashtag/[tag])
+    - Hashtag pages showing all posts with that tag
+    - Trending hashtags
+
+--- Admin Panel ---
+
+13. Admin Dashboard (/admin)
+    - User management (view all users)
+    - Platform statistics
+    - Social graph visualization (react-force-graph-2d)
+    - Neo4j graph database visual explorer
+
+14. Admin Security (/admin/security)
+    - Security monitoring
+    - Login attempt tracking
+    - Suspicious activity alerts
+
+15. Admin User Management (/admin/users)
+    - View all registered users
+    - Ban/restrict users
+    - User detail inspection
+
+16. Admin Monitor (/admin/monitor)
+    - Real-time platform health monitoring
+    - Database connection status
+
+--- Content Moderation ---
+
+17. Automated Moderation Bot (/api/cron/moderation)
+    - Scheduled background content scanning
+    - NSFW content detection
+    - Automated removal of violating content
+    - Gemini AI integration for content analysis
+
+--- Developer Tools ---
+
+18. Database Reseed (/api/dev/reseed)
+    - One-click database wipe and reseed via browser
+    - Creates test accounts with proper encryption
+    - No terminal access needed
+
+19. Health Check (/api/health)
+    - Database connectivity check
+    - System status endpoint
+
+20. Database Test (/api/test-db)
+    - Direct database connection testing
+
+==============================================================================
+  API ROUTES
+==============================================================================
+
+Authentication:
+  POST /api/auth/register     — Create new account
+  POST /api/auth/verify-otp   — Verify email with OTP
+  POST /api/auth/[...nextauth] — NextAuth session management
+
+Posts:
+  GET  /api/posts              — Fetch feed posts
+  POST /api/posts              — Create new post
+  
+Comments:
+  GET  /api/comments           — Fetch comments for a post
+  POST /api/comments           — Add a comment
+
+Users:
+  GET  /api/users              — Fetch user data
+  
+Search:
+  GET  /api/search             — Search users and posts
+
+Explore:
+  GET  /api/explore            — Trending and discovery content
+
+Groups:
+  GET  /api/groups             — List groups
+  POST /api/groups             — Create group
+
+Messages:
+  GET  /api/messages           — Fetch message threads
+  POST /api/messages           — Send message
+
+Stories:
+  GET  /api/stories            — Fetch stories
+  POST /api/stories            — Create story
+
+Notifications:
+  GET  /api/notifications      — Fetch notifications
+
+Hashtags:
+  GET  /api/hashtags           — Trending hashtags
+
+Upload:
+  POST /api/upload             — Upload media to Cloudinary
+
+Admin:
+  GET  /api/admin/graph        — Social graph data for visualization
+
+Recommendations:
+  GET  /api/recommendations    — Friend/content recommendations
+
+Cron:
+  GET  /api/cron/moderation    — Automated content moderation sweep
+
+Developer:
+  GET  /api/dev/reseed         — Wipe and reseed database
+  GET  /api/health             — Health check
+  GET  /api/test-db            — Database connectivity test
+
+==============================================================================
+  TEST ACCOUNTS
+==============================================================================
+
+After running reseed (visit /api/dev/reseed):
+
+  Email                      Password       Role
+  -------------------------  -------------  ----------------
+  admin@vertex.social        Password123!   Admin
+  adult1@vertex.social       Password123!   Regular User
+  adult2@vertex.social       Password123!   Regular User
+  teen1@vertex.social        Password123!   Restricted (teen)
+
+==============================================================================
+  FILE STRUCTURE
+==============================================================================
+
+src/
+  app/
+    (auth)/          — Login and registration pages
+    (main)/          — Feed, profile, explore, messages, etc.
+    admin/           — Admin dashboard
+    api/             — All API routes (serverless functions)
+    page.tsx         — Landing page
+    layout.tsx       — Root layout with providers
+    globals.css      — Global styles
+  components/
+    ui/              — Reusable UI components (shadcn)
+  lib/
+    auth.ts          — NextAuth configuration
+    neo4j.ts         — Database driver and query helpers
+    security/
+      dbEncryption.ts — AES-256 encryption + HMAC hashing
+      mail.ts        — Email service (Resend)
+    cloudinary.ts    — Image upload service
+    pusher.ts        — Real-time messaging service
+    moderation.ts    — Content moderation utilities
+
+==============================================================================
+  ENVIRONMENT VARIABLES REQUIRED
+==============================================================================
+
+Database:
+  NEO4J_URI            — Neo4j AuraDB connection string
+  NEO4J_USERNAME       — Database username
+  NEO4J_PASSWORD       — Database password
+  NEO4J_DATABASE       — Database name
+
+Authentication:
+  NEXTAUTH_SECRET      — Secret for JWT signing and encryption
+  NEXTAUTH_URL         — Application URL
+
+Email:
+  RESEND_API_KEY       — Resend API key for sending OTPs
+
+Media:
+  CLOUDINARY_CLOUD_NAME — Cloudinary cloud name
+  CLOUDINARY_API_KEY    — Cloudinary API key
+  CLOUDINARY_API_SECRET — Cloudinary API secret
+
+Real-time:
+  PUSHER_APP_ID                — Pusher app ID
+  NEXT_PUBLIC_PUSHER_KEY       — Pusher public key
+  PUSHER_SECRET                — Pusher secret
+  NEXT_PUBLIC_PUSHER_CLUSTER   — Pusher cluster region
+
+==============================================================================

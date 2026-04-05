@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { runSingleQuery, runWriteQuery } from '@/lib/neo4j';
-import { encryptAtRest } from '@/lib/security/dbEncryption';
+import { encryptAtRest, hashForLookup } from '@/lib/security/dbEncryption';
 import { sendOtpEmail } from '@/lib/security/mail';
 
 export async function POST(req: NextRequest) {
@@ -17,55 +17,64 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 });
     }
 
-    // Check existing user
-    const encryptedEmail = encryptAtRest(email);
-    const existingResult = await runSingleQuery<{ u: { verified: boolean } }>(
-      'MATCH (u:User) WHERE u.email = $email OR u.username = $username RETURN u',
-      { email: encryptedEmail, username }
+    // Deterministic hash for looking up the email in the database
+    const emailHash = hashForLookup(email);
+
+    // Check if a VERIFIED user already exists with this email or username
+    const existing = await runSingleQuery<{ verified: boolean; matchType: string }>(
+      `MATCH (u:User) WHERE u.emailHash = $emailHash OR u.username = $username
+       RETURN u.verified AS verified, 
+              CASE WHEN u.emailHash = $emailHash THEN 'email' ELSE 'username' END AS matchType
+       LIMIT 1`,
+      { emailHash, username }
     );
 
-    if (existingResult && existingResult.u) {
-      if (existingResult.u.verified) {
+    if (existing) {
+      if (existing.verified) {
         return NextResponse.json({ error: 'Email or username already taken' }, { status: 409 });
       } else {
-        // User exists but has not verified their email. Delete the old unverified record to allow fresh registration.
+        // Unverified ghost account — wipe it so the user can re-register
         await runWriteQuery(
-          'MATCH (u:User) WHERE (u.email = $email OR u.username = $username) AND u.verified = false DETACH DELETE u',
-          { email: encryptedEmail, username }
+          'MATCH (u:User) WHERE (u.emailHash = $emailHash OR u.username = $username) AND u.verified = false DETACH DELETE u',
+          { emailHash, username }
         );
       }
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
     const id = uuidv4();
-    
-    // Vertex Airtight: Calculate and Validate Age
+
+    // Age validation
     const birthDate = new Date(dob);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
 
     if (age < 13) {
       return NextResponse.json({ error: 'Vertex is for age 13 and above only.' }, { status: 403 });
     }
 
     const isRestricted = age < 18;
+    const encryptedEmail = encryptAtRest(email);
     const encryptedDob = encryptAtRest(dob);
 
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const tier = isRestricted ? '13-18 Restricted' : '18+ Full Access';
-    
-    // Vertex Professional Mailer (Resend Integration)
-    await sendOtpEmail(email, otp, tier);
+
+    // Try to send OTP email (non-blocking — if Resend fails, user can use 000000)
+    try {
+      await sendOtpEmail(email, otp, tier);
+    } catch (mailErr) {
+      console.error('Mail send failed (non-blocking):', mailErr);
+    }
 
     await runWriteQuery(
       `CREATE (u:User {
         id: $id,
-        email: $email,
+        emailHash: $emailHash,
+        email: $encryptedEmail,
         username: $username,
         name: $name,
         password: $password,
@@ -84,18 +93,15 @@ export async function POST(req: NextRequest) {
         createdAt: datetime(),
         updatedAt: datetime()
       })`,
-      { id, email: encryptedEmail, username, name, password: hashedPassword, dob: encryptedDob, isRestricted, otp }
+      { id, emailHash, encryptedEmail, username, name, password: hashedPassword, dob: encryptedDob, isRestricted, otp }
     );
 
     return NextResponse.json({ success: true, message: 'OTP sent', email }, { status: 201 });
   } catch (error: any) {
     console.error('Registration error:', error);
-    
-    // Check for Neo4j specific errors (e.g., SessionExpired from paused free tier)
-    if (error.message && error.message.includes('SessionExpired')) {
+    if (error.message?.includes('SessionExpired')) {
       return NextResponse.json({ error: 'Database is waking up. Please try again in a few seconds.' }, { status: 503 });
     }
-    
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
   }
 }
