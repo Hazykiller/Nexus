@@ -16,7 +16,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
        OPTIONAL MATCH (u)-[:FOLLOWS]->(following:User)
        OPTIONAL MATCH (u)-[:CREATED]->(p:Post)
        OPTIONAL MATCH (me:User {id: $currentUserId})-[f:FOLLOWS]->(u)
-        OPTIONAL MATCH (me4:User {id: $currentUserId})-[cf:CLOSE_FRIEND]->(u)
+       OPTIONAL MATCH (me2:User {id: $currentUserId})-[b:BLOCKED]->(u)
+       OPTIONAL MATCH (u)-[fb:FOLLOWS]->(me3:User {id: $currentUserId})
+       OPTIONAL MATCH (me4:User {id: $currentUserId})-[cf:CLOSE_FRIEND]->(u)
         RETURN u,
           COUNT(DISTINCT follower) AS followersCount,
           COUNT(DISTINCT following) AS followingCount,
