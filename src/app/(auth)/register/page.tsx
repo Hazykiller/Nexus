@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Eye, EyeOff, Loader2, ArrowLeft, Mail, Check, X } from 'lucide-react';
+import { Eye, EyeOff, Loader2, ArrowLeft, ShieldCheck, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isOtpSent, setIsOtpSent] = useState(false);
+  const [authUrl, setAuthUrl] = useState<string | null>(null);
   const [otp, setOtp] = useState('');
   const [form, setForm] = useState({
     name: '',
@@ -58,7 +60,8 @@ export default function RegisterPage() {
 
       if (res.ok) {
         setIsOtpSent(true);
-        toast.success('Check your email — we sent you a 6-digit code.');
+        if (data.authUrl) setAuthUrl(data.authUrl);
+        toast.success('Registration skeleton created. Please bind your authenticator.');
       } else {
         toast.error(data.error || 'Something went wrong. Try again.');
       }
@@ -110,14 +113,20 @@ export default function RegisterPage() {
 
           <div className="rounded-2xl border border-white/10 bg-white/3 backdrop-blur-xl p-8 shadow-2xl">
             <div className="w-12 h-12 rounded-2xl bg-indigo-600/15 flex items-center justify-center text-indigo-400 mb-5 mx-auto">
-              <Mail className="w-6 h-6" />
+              <ShieldCheck className="w-6 h-6" />
             </div>
 
-            <h1 className="text-xl font-bold mb-1 text-center text-white">Check your email</h1>
+            <h1 className="text-xl font-bold mb-1 text-center text-white">Secure your account</h1>
             <p className="text-slate-400 text-sm mb-6 text-center">
-              We sent a 6-digit code to{' '}
-              <span className="text-indigo-400 font-medium">{form.email}</span>
+              Scan the QR Code with <strong>Google Authenticator</strong><br/>
+              and enter the 6-digit pin generated for <span className="text-indigo-400">{form.email}</span>.
             </p>
+
+            {authUrl && (
+              <div className="flex justify-center mb-6 bg-white p-4 rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                <QRCodeSVG value={authUrl} size={160} />
+              </div>
+            )}
 
             <form onSubmit={handleOtpSubmit} className="space-y-4">
               <Input

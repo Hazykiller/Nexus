@@ -4,8 +4,6 @@ import { authOptions } from '@/lib/auth';
 import { runQuery, runWriteQuery } from '@/lib/neo4j';
 import { v4 as uuidv4 } from 'uuid';
 import { uploadFile } from '@/lib/storage';
-import { runGuardBot } from '@/lib/security/guardbot';
-import { logSecurityEvent } from '@/lib/security/security';
 
 export async function GET(req: NextRequest) {
   try {
@@ -42,6 +40,7 @@ export async function GET(req: NextRequest) {
           OR (p.visibility = 'private' AND (author.id = $userId OR (author)-[:FOLLOWS]->(me)))
         )
         AND NOT (me)-[:BLOCKED]->(author) AND NOT (author)-[:BLOCKED]->(me)
+        AND coalesce(p.isDeleted, false) = false
         
         OPTIONAL MATCH (p)<-[likes:LIKES]-()
         OPTIONAL MATCH (p)<-[reacts:REACTED]-()
@@ -67,6 +66,7 @@ export async function GET(req: NextRequest) {
       cypher = `
         MATCH (author:User {id: $targetId})-[:CREATED]->(p:Post)
         WHERE (p.visibility = 'public' OR author.id = $userId)
+        AND coalesce(p.isDeleted, false) = false
         OPTIONAL MATCH (p)<-[likes:LIKES]-()
         OPTIONAL MATCH (p)<-[reacts:REACTED]-()
         OPTIONAL MATCH (p)<-[:CREATED]-(cm:Comment)
@@ -94,6 +94,7 @@ export async function GET(req: NextRequest) {
       cypher = `
         MATCH (me:User {id: $userId})-[l:LIKES]->(p:Post)
         MATCH (author:User)-[:CREATED]->(p)
+        WHERE coalesce(p.isDeleted, false) = false
         OPTIONAL MATCH (p)<-[likes:LIKES]-()
         OPTIONAL MATCH (p)<-[reacts:REACTED]-()
         OPTIONAL MATCH (p)<-[:CREATED]-(cm:Comment)
@@ -121,6 +122,7 @@ export async function GET(req: NextRequest) {
       cypher = `
         MATCH (me:User {id: $userId})-[s:SAVED]->(p:Post)
         MATCH (author:User)-[:CREATED]->(p)
+        WHERE coalesce(p.isDeleted, false) = false
         OPTIONAL MATCH (p)<-[likes:LIKES]-()
         OPTIONAL MATCH (p)<-[reacts:REACTED]-()
         OPTIONAL MATCH (p)<-[:CREATED]-(cm:Comment)
@@ -155,6 +157,7 @@ export async function GET(req: NextRequest) {
         WHERE p.visibility = 'public'
         AND author <> me
         AND NOT (me)-[:BLOCKED]-(author)
+        AND coalesce(p.isDeleted, false) = false
         
         // Calculate Proximity Scores
         OPTIONAL MATCH (p)-[:HAS_TAG]->(t:Hashtag)
@@ -277,34 +280,49 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Post must have content or media' }, { status: 400 });
     }
 
-    // Vertex GuardBot — Real-time NSFW & Toxicity Scan
+    let isDeleted = false;
+    let moderationReason = '';
+
+    // OpenRouter AI Auto-Moderation Pipeline (Live Content Analysis)
     if (content) {
-      const guard = runGuardBot(content);
-      if (guard.shouldDelete) {
-        // Log the blocked post as a security event
-        await logSecurityEvent(
-          'moderation_breach',
-          `GuardBot blocked ${guard.severity} post: [${guard.category}] ${guard.reason}`,
-          userId
-        );
-        return NextResponse.json(
-          { error: `Content blocked by Vertex GuardBot: ${guard.reason}` },
-          { status: 422 }
-        );
-      }
-      if (guard.shouldWarn) {
-        // Flag for admin review but allow through
-        await logSecurityEvent(
-          'moderation_breach',
-          `GuardBot flagged ${guard.severity} post for review: [${guard.category}]`,
-          userId
-        );
+      const openRouterKey = process.env.OPENROUTER_API_KEY;
+      if (openRouterKey) {
+        try {
+          const modRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${openRouterKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model: 'openai/gpt-3.5-turbo',
+              messages: [{
+                role: 'system',
+                content: 'Analyze the text for extreme hate speech, severe toxicity, explicit harm, or severe spam. If it contains any, respond EXACTLY with "FLAGGED: [Reason]". Otherwise respond exactly with "SAFE". Be lenient for casual social context.'
+              }, { role: 'user', content }]
+            })
+          });
+          const modJson = await modRes.json();
+          const modReply = modJson.choices?.[0]?.message?.content || 'SAFE';
+          
+          if (modReply.startsWith('FLAGGED:')) {
+            isDeleted = true;
+            moderationReason = modReply;
+            console.log('AI Auto-Moderator Flagged Post:', modReply);
+            
+            // Increment User Risk Score (Level 0->3 mapping done on client/admin display)
+            await runWriteQuery(
+              `MATCH (u:User {id: $userId})
+               SET u.riskScore = coalesce(u.riskScore, 0) + 1`,
+              { userId }
+            );
+          }
+        } catch(e) { 
+          console.error('OpenRouter Moderation Execution Error:', e); 
+        }
       }
     }
 
     const postId = uuidv4();
 
-    // Create post
+    // Create post (or tombstoned post if moderated)
     await runWriteQuery(
       `MATCH (u:User {id: $userId})
        CREATE (u)-[:CREATED]->(p:Post {
@@ -314,6 +332,8 @@ export async function POST(req: NextRequest) {
          video: $video,
          location: $location,
          visibility: $visibility,
+         isDeleted: $isDeleted,
+         moderationReason: $moderationReason,
          createdAt: datetime(),
          updatedAt: datetime()
        })`,
@@ -325,8 +345,14 @@ export async function POST(req: NextRequest) {
         video: video || '',
         location: location || '',
         visibility: visibility || 'public',
+        isDeleted,
+        moderationReason
       }
     );
+
+    if (isDeleted) {
+       return NextResponse.json({ error: `Your post was auto-removed containing illicit content. Reason: ${moderationReason}` }, { status: 403 });
+    }
 
     // Create hashtag relationships
     if (hashtags && hashtags.length > 0) {

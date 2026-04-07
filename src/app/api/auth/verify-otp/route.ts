@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { runSingleQuery, runWriteQuery } from '@/lib/neo4j';
+import { runSingleQuery } from '@/lib/neo4j';
 import { hashForLookup } from '@/lib/security/dbEncryption';
+// @ts-ignore
+import { authenticator } from 'otplib';
 
 /**
  * OTP Verification Route
@@ -18,26 +20,27 @@ export async function POST(req: NextRequest) {
 
     // If NOT the master bypass, validate the real OTP
     if (otp !== '000000') {
-      const user = await runSingleQuery<{ otp: string; otpExpiresAt: number }>(
-        'MATCH (u:User {emailHash: $emailHash}) RETURN u.otp AS otp, u.otpExpiresAt AS otpExpiresAt',
+      const user = await runSingleQuery<{ totpSecret: string }>(
+        'MATCH (u:User {emailHash: $emailHash}) RETURN u.totpSecret AS totpSecret',
         { emailHash }
       );
 
-      if (!user) {
-        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      if (!user || !user.totpSecret) {
+        return NextResponse.json({ error: 'User not found or secret missing' }, { status: 404 });
       }
-      if (user.otp !== otp) {
-        return NextResponse.json({ error: 'Invalid verification code' }, { status: 400 });
-      }
-      if (Date.now() > user.otpExpiresAt) {
-        return NextResponse.json({ error: 'Verification code has expired' }, { status: 400 });
+
+      // Verify TOTP dynamically based on current time
+      const isValid = authenticator.verify({ token: otp, secret: user.totpSecret });
+
+      if (!isValid) {
+        return NextResponse.json({ error: 'Invalid or expired Authenticator code' }, { status: 400 });
       }
     }
 
     // Mark as verified
     const result = await runSingleQuery<{ id: string }>(
       `MATCH (u:User {emailHash: $emailHash})
-       SET u.verified = true, u.otp = null, u.otpExpiresAt = null
+       SET u.verified = true
        RETURN u.id AS id`,
       { emailHash }
     );

@@ -22,8 +22,9 @@ function InteractiveNexusCore() {
     canvas.width = width;
     canvas.height = height;
 
-    const numPoints = 350;
-    const radius = Math.min(width, height) * 0.45;
+    const numPoints = 400;
+    // Massive radius to fully cover screen and prevent black edges
+    const radius = Math.max(width, height) * 0.9;
     
     interface Point3D {
       x: number; y: number; z: number;
@@ -53,9 +54,9 @@ function InteractiveNexusCore() {
     const handleMouseMove = (e: MouseEvent) => {
       const centerX = width / 2;
       const centerY = height / 2;
-      // Mouse drives rotation speed and direction
-      targetRotationY = (e.clientX - centerX) * 0.00005;
-      targetRotationX = (e.clientY - centerY) * 0.00005;
+      // Extremely subtle, smooth cinematic rotation based on mouse hover
+      targetRotationY = (e.clientX - centerX) * 0.000002;
+      targetRotationX = (e.clientY - centerY) * 0.000002;
     };
     
     window.addEventListener('mousemove', handleMouseMove);
@@ -104,7 +105,8 @@ function InteractiveNexusCore() {
         const p1 = projected[i];
         if (p1.z > 200) continue; // Skip lines in far background to save perf
 
-        ctx.fillStyle = `rgba(34, 211, 238, ${Math.max(0.1, p1.scale * 0.8)})`;
+        // Organic premium slate colors instead of neon cyberpunk colors
+        ctx.fillStyle = `rgba(226, 232, 240, ${Math.max(0.1, p1.scale * 0.8)})`;
         ctx.beginPath();
         ctx.arc(p1.x, p1.y, p1.scale * 2.5, 0, Math.PI * 2);
         ctx.fill();
@@ -113,7 +115,7 @@ function InteractiveNexusCore() {
           const p2 = projected[j];
           const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
           if (dist < 100 * p1.scale) {
-            ctx.strokeStyle = `rgba(16, 185, 129, ${Math.max(0.05, (1 - dist / 100) * p1.scale * 0.5)})`;
+            ctx.strokeStyle = `rgba(148, 163, 184, ${Math.max(0.05, (1 - dist / 100) * p1.scale * 0.3)})`;
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(p2.x, p2.y);
@@ -159,14 +161,14 @@ export default function LandingPage() {
       
       {/* Subtle glowing accents */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-indigo-600/10 blur-[140px] rounded-full mix-blend-screen animate-pulse" style={{ animationDuration: '4s' }} />
-        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-violet-600/10 blur-[140px] rounded-full mix-blend-screen animate-pulse" style={{ animationDuration: '6s' }} />
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-slate-600/10 blur-[140px] rounded-full mix-blend-screen animate-pulse" style={{ animationDuration: '4s' }} />
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-zinc-600/10 blur-[140px] rounded-full mix-blend-screen animate-pulse" style={{ animationDuration: '6s' }} />
       </div>
 
       {/* Nav */}
       <nav className="relative z-50 flex items-center justify-between px-6 py-6 max-w-6xl w-full mx-auto">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-lg shadow-[0_0_20px_rgba(99,102,241,0.4)]">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-700 to-zinc-900 flex items-center justify-center text-white font-bold text-lg shadow-[0_0_20px_rgba(255,255,255,0.1)]">
             V
           </div>
           <span className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-white/70">
@@ -180,7 +182,7 @@ export default function LandingPage() {
           </Link>
           <Link
             href="/register"
-            className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur-md text-white text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+            className="px-5 py-2.5 rounded-full bg-white text-black text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.2)]"
           >
             Get started
           </Link>
@@ -189,15 +191,15 @@ export default function LandingPage() {
 
       {/* Hero Centered */}
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center -mt-16">
-        <div className="inline-block mb-6 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-400/20 backdrop-blur-sm shadow-[0_0_20px_rgba(99,102,241,0.15)] animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <span className="text-indigo-300 text-xs font-bold uppercase tracking-widest">
+        <div className="inline-block mb-6 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <span className="text-slate-300 text-xs font-bold uppercase tracking-widest">
             Welcome to the future of social
           </span>
         </div>
 
         <h1 className="text-5xl md:text-7xl lg:text-[90px] font-extrabold leading-[1.05] tracking-tight mb-8 animate-in fade-in zoom-in duration-1000 delay-100">
           Share what <br />
-          <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-fuchsia-400 bg-clip-text text-transparent animate-pulse">
+          <span className="text-white">
             truly matters
           </span>
         </h1>
@@ -209,7 +211,7 @@ export default function LandingPage() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500">
           <Link
             href="/register"
-            className="group flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-lg transition-all shadow-[0_0_40px_rgba(99,102,241,0.4)] hover:shadow-[0_0_60px_rgba(99,102,241,0.6)] hover:scale-[1.02] active:scale-[0.98]"
+            className="group flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-white hover:bg-slate-200 text-black font-bold text-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             Enter Vertex <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>

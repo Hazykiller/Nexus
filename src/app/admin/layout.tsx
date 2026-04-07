@@ -3,13 +3,14 @@ import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { headers } from 'next/headers';
-import { LayoutDashboard, Users, Shield, Cloud, Activity } from 'lucide-react';
+import { LayoutDashboard, Users, Shield, Cloud, Activity, Bot } from 'lucide-react';
 
 const adminNav = [
   { href: '/admin', label: 'Graph', icon: LayoutDashboard, exact: true },
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/security', label: 'Security Log', icon: Shield },
   { href: '/admin/monitor', label: 'Cloud Monitor', icon: Cloud },
+  { href: '/admin/moderation', label: 'AI Moderation', icon: Bot },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

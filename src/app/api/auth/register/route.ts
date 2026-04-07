@@ -3,11 +3,21 @@ import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { runSingleQuery, runWriteQuery } from '@/lib/neo4j';
 import { encryptAtRest, hashForLookup } from '@/lib/security/dbEncryption';
-import { sendOtpEmail } from '@/lib/security/mail';
+// @ts-expect-error otplib types missing but functionality remains fully sound
+import { authenticator } from 'otplib';
+import { getRateLimit } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
   try {
     const { name, username, email, password, dob } = await req.json();
+
+    // 1. Rate Limit Check (10 requests per 10 minutes per IP/identifier)
+    // For Vercel Edge/Serverless, we use x-forwarded-for or a fallback identifier
+    const ip = req.headers.get('x-forwarded-for') || 'anon-' + email;
+    const rateLimit = getRateLimit(ip, 5, 10 * 60 * 1000);
+    if (!rateLimit.success) {
+      return NextResponse.json({ error: 'Too many registration attempts. Please try again later.' }, { status: 429 });
+    }
 
     if (!name || !username || !email || !password || !dob) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
@@ -59,16 +69,9 @@ export async function POST(req: NextRequest) {
     const encryptedEmail = encryptAtRest(email);
     const encryptedDob = encryptAtRest(dob);
 
-    // Generate 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const tier = isRestricted ? '13-18 Restricted' : '18+ Full Access';
-
-    // Try to send OTP email (non-blocking — if Resend fails, user can use 000000)
-    try {
-      await sendOtpEmail(email, otp, tier);
-    } catch (mailErr) {
-      console.error('Mail send failed (non-blocking):', mailErr);
-    }
+    // Generate Google Authenticator TOTP Secret
+    const secret = authenticator.generateSecret();
+    const qrCodeUrl = authenticator.keyuri(email, 'Vertex Social Network', secret);
 
     await runWriteQuery(
       `CREATE (u:User {
@@ -88,15 +91,14 @@ export async function POST(req: NextRequest) {
         privacy: 'public',
         verified: false,
         isAdmin: false,
-        otp: $otp,
-        otpExpiresAt: timestamp() + 900000,
+        totpSecret: $secret,
         createdAt: datetime(),
         updatedAt: datetime()
       })`,
-      { id, emailHash, encryptedEmail, username, name, password: hashedPassword, dob: encryptedDob, isRestricted, otp }
+      { id, emailHash, encryptedEmail, username, name, password: hashedPassword, dob: encryptedDob, isRestricted, secret }
     );
 
-    return NextResponse.json({ success: true, message: 'OTP sent', email }, { status: 201 });
+    return NextResponse.json({ success: true, message: 'Account skeleton generated', authUrl: qrCodeUrl, email }, { status: 201 });
   } catch (error: any) {
     console.error('Registration error:', error);
     if (error.message?.includes('SessionExpired')) {

@@ -64,6 +64,10 @@ export default function AdminGraphDashboard() {
       }
     }
     loadGraph();
+
+    // Auto-refresh the admin graph every 5 seconds for real-time monitoring
+    const interval = setInterval(loadGraph, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const nodeColor = useCallback((node: any) => {

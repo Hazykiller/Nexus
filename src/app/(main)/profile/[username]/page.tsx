@@ -58,15 +58,16 @@ export default function ProfilePage() {
     async function load() {
       try {
         setLoading(true);
-        // Fetch user by username
-        const searchRes = await fetch(`/api/users/search?q=${username}`);
-        const searchData = await searchRes.json();
-        const foundUser = searchData.data?.find((u: User) => u.username === username);
-        if (!foundUser) { setLoading(false); return; }
+        // Fetch exactly by username instead of fuzzy search
+        const lookupRes = await fetch(`/api/users/by-username/${username}`);
+        const lookupData = await lookupRes.json();
+        if (!lookupData.success || !lookupData.data?.id) { setLoading(false); return; }
+
+        const foundUserId = lookupData.data.id;
 
         const [userRes, postsRes] = await Promise.all([
-          fetch(`/api/users/${foundUser.id}`).then((r) => r.json()),
-          fetch(`/api/posts?type=user&userId=${foundUser.id}`).then((r) => r.json()),
+          fetch(`/api/users/${foundUserId}`).then((r) => r.json()),
+          fetch(`/api/posts?type=user&userId=${foundUserId}`).then((r) => r.json()),
         ]);
 
         if (userRes.success) {

@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
            AND NOT (me)-[:BLOCKED]->(rec)
            AND NOT rec.id IN $existingIds
          RETURN rec, 0 AS score
-         ORDER BY rec.createdAt DESC LIMIT $limit`,
+         ORDER BY rec.createdAt DESC LIMIT toInteger($limit)`,
         { userId, existingIds, limit: 10 - results.length }
       );
       results = [...results, ...fallback];
