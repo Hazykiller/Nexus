@@ -3,8 +3,9 @@ import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { runSingleQuery, runWriteQuery } from '@/lib/neo4j';
 import { encryptAtRest, hashForLookup } from '@/lib/security/dbEncryption';
-// @ts-expect-error otplib types missing but functionality remains fully sound
-import { authenticator } from 'otplib';
+// @ts-ignore
+import * as otplib from 'otplib';
+const { authenticator } = otplib as any;
 import { getRateLimit } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {

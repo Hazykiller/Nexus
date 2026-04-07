@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { runSingleQuery } from '@/lib/neo4j';
 import { hashForLookup } from '@/lib/security/dbEncryption';
 // @ts-ignore
-import { authenticator } from 'otplib';
+import * as otplib from 'otplib';
+const { authenticator } = otplib as any;
 
 /**
  * OTP Verification Route
