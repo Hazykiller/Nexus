@@ -33,6 +33,7 @@ export default function ChatViewPage() {
   const conversationId = params.conversationId as string;
 
   const [messages, setMessages] = useState<Message[]>([]);
+  const [partner, setPartner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [inputText, setInputText] = useState('');
   const [sending, setSending] = useState(false);
@@ -45,6 +46,7 @@ export default function ChatViewPage() {
         if (!res.ok) throw new Error('Forbidden');
         const data = await res.json();
         setMessages(data.data || []);
+        if (data.partner) setPartner(data.partner);
       } catch {
         router.push('/messages');
       } finally {
@@ -129,13 +131,7 @@ export default function ChatViewPage() {
     }
   };
 
-  const getOtherParticipant = () => {
-    if (messages.length === 0) return null;
-    const otherMsg = messages.find((m) => m.senderId !== userId);
-    return otherMsg?.sender || null;
-  };
-
-  const partnerInfo = getOtherParticipant();
+  const partnerInfo = partner;
 
   return (
     <div className="flex flex-col h-[calc(100vh-140px)] md:h-[calc(100vh-80px)] xl:h-screen w-full lg:max-w-[700px] xl:max-w-none bg-background">

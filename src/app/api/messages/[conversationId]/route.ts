@@ -62,7 +62,18 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ conv
       };
     });
 
-    return NextResponse.json({ success: true, data: messages });
+    // Fetch partner info explicitly
+    const partnerQuery = await runQuery(
+      `MATCH (c:Conversation {id: $conversationId})<-[:PARTICIPATES_IN]-(other:User)
+       WHERE other.id <> $userId
+       RETURN other LIMIT 1`,
+      { conversationId, userId }
+    );
+
+    const partner = partnerQuery.length ? (partnerQuery[0].other as Record<string, unknown>) : null;
+    if (partner) delete partner.password;
+
+    return NextResponse.json({ success: true, data: messages, partner });
   } catch (error) {
     console.error('Get messages error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

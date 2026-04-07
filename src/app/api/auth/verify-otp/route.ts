@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runSingleQuery } from '@/lib/neo4j';
 import { hashForLookup } from '@/lib/security/dbEncryption';
-// @ts-ignore
-import * as otplib from 'otplib';
-const { authenticator } = otplib as any;
+import { verifyTOTP } from '@/lib/security/totp';
 
 /**
  * OTP Verification Route
@@ -31,7 +29,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Verify TOTP dynamically based on current time
-      const isValid = authenticator.verify({ token: otp, secret: user.totpSecret });
+      const isValid = verifyTOTP(otp, user.totpSecret);
 
       if (!isValid) {
         return NextResponse.json({ error: 'Invalid or expired Authenticator code' }, { status: 400 });

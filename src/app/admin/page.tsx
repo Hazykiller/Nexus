@@ -152,7 +152,7 @@ export default function AdminGraphDashboard() {
       </div>
 
       {/* Stats Bar */}
-      <div className="absolute top-20 left-5 z-20 flex flex-col gap-3">
+      <div className="absolute top-36 left-5 z-20 flex flex-col gap-3">
         <div className="flex gap-3">
           {[
             { label: 'Users', value: stats.users, color: '#06b6d4' },
