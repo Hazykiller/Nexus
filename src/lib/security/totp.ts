@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-export function generateBase32Secret(length = 20): string {
+export function generateBase32Secret(length = 16): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
   let secret = '';
   const bytes = crypto.randomBytes(length);
@@ -12,7 +12,7 @@ export function generateKeyUri(account: string, issuer: string, secret: string):
   return `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(account)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}`;
 }
 
-export function verifyTOTP(token: string, secret: string, window = 1): boolean {
+export function verifyTOTP(token: string, secret: string, window = 2): boolean {
   if (!token || token.length !== 6) return false;
   
   // Base32 decode

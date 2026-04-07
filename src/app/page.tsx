@@ -7,9 +7,9 @@ import { useEffect, useState } from 'react';
 function GradientBackground() {
   return (
     <div className="fixed inset-0 z-0 overflow-hidden bg-[#0a0a0f]">
-      <div className="absolute -top-[20%] -left-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-cyan-900/30 to-blue-900/10 blur-[120px] animate-pulse" style={{ animationDuration: '8s' }} />
-      <div className="absolute top-[40%] text-center left-[40%] w-[60%] h-[60%] rounded-full bg-gradient-to-tl from-emerald-900/20 to-teal-900/10 blur-[100px] animate-pulse" style={{ animationDuration: '12s', animationDelay: '2s' }} />
-      <div className="absolute -bottom-[20%] -right-[10%] w-[80%] h-[80%] rounded-full bg-gradient-to-tr from-indigo-900/20 to-purple-900/10 blur-[150px] animate-pulse" style={{ animationDuration: '10s', animationDelay: '1s' }} />
+      <div className="absolute -top-[20%] -left-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-cyan-900/30 to-blue-900/10 blur-[120px] animate-blob-1" />
+      <div className="absolute top-[40%] text-center left-[40%] w-[60%] h-[60%] rounded-full bg-gradient-to-tl from-emerald-900/20 to-teal-900/10 blur-[100px] animate-blob-2" />
+      <div className="absolute -bottom-[20%] -right-[10%] w-[80%] h-[80%] rounded-full bg-gradient-to-tr from-indigo-900/20 to-purple-900/10 blur-[150px] animate-blob-3" />
       
       {/* Subtle grid overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_40%,#000_20%,transparent_100%)]" />
