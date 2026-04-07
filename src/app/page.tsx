@@ -3,12 +3,13 @@
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import dynamic from 'next/dynamic';
 
 /**
  * Epic 3D Interactive Nexus Sphere
  * Projects 3D mathematical coordinates into a 2D canvas simulation.
  */
-function InteractiveNexusCore() {
+const InteractiveNexusCore = dynamic(() => Promise.resolve(function Nexus() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -23,7 +24,6 @@ function InteractiveNexusCore() {
     canvas.height = height;
 
     const numPoints = 400;
-    // Massive radius to fully cover screen and prevent black edges
     const radius = Math.max(width, height) * 0.9;
     
     interface Point3D {
@@ -32,17 +32,13 @@ function InteractiveNexusCore() {
     }
     
     const points: Point3D[] = [];
-    
-    // Generate points on a sphere using Fibonacci lattice
     const phi = Math.PI * (3 - Math.sqrt(5));
     for (let i = 0; i < numPoints; i++) {
       const y = 1 - (i / (numPoints - 1)) * 2;
       const r = Math.sqrt(1 - y * y);
       const theta = phi * i;
-      
       const x = Math.cos(theta) * r;
       const z = Math.sin(theta) * r;
-      
       points.push({ x: x * radius, y: y * radius, z: z * radius, origX: x * radius, origY: y * radius, origZ: z * radius });
     }
 
@@ -54,7 +50,6 @@ function InteractiveNexusCore() {
     const handleMouseMove = (e: MouseEvent) => {
       const centerX = width / 2;
       const centerY = height / 2;
-      // Extremely subtle, smooth cinematic rotation based on mouse hover
       targetRotationY = (e.clientX - centerX) * 0.000002;
       targetRotationX = (e.clientY - centerY) * 0.000002;
     };
@@ -67,45 +62,31 @@ function InteractiveNexusCore() {
     const render = () => {
       ctx.fillStyle = '#050508';
       ctx.fillRect(0, 0, width, height);
-      
-      // Smooth interpolation towards target rotation
       rotationX += (targetRotationX - (rotationX * 0.01));
       rotationY += (targetRotationY - (rotationY * 0.01));
-
       const cosX = Math.cos(rotationX);
       const sinX = Math.sin(rotationX);
       const cosY = Math.cos(rotationY);
       const sinY = Math.sin(rotationY);
 
-      // Project and draw
       const projected = points.map(p => {
-        // Rotate Y
         const x1 = p.x * cosY - p.z * sinY;
         const z1 = p.z * cosY + p.x * sinY;
-        // Rotate X
         const y1 = p.y * cosX - z1 * sinX;
         const z2 = z1 * cosX + p.y * sinX;
-        
-        // Update point state permanently
         p.x = x1; p.y = y1; p.z = z2;
-
         const scale = fov / (fov + z2);
         const x2d = (x1 * scale) + width / 2;
         const y2d = (y1 * scale) + height / 2;
-        
         return { x: x2d, y: y2d, z: z2, scale };
       });
 
-      // Sort by Z for proper depth rendering connecting lines
       projected.sort((a, b) => b.z - a.z);
 
-      // Draw constellation lines (only close neighbors that are visible)
       ctx.lineWidth = 0.6;
       for (let i = 0; i < projected.length; i++) {
         const p1 = projected[i];
-        if (p1.z > 200) continue; // Skip lines in far background to save perf
-
-        // Organic premium slate colors instead of neon cyberpunk colors
+        if (p1.z > 200) continue; 
         ctx.fillStyle = `rgba(226, 232, 240, ${Math.max(0.1, p1.scale * 0.8)})`;
         ctx.beginPath();
         ctx.arc(p1.x, p1.y, p1.scale * 2.5, 0, Math.PI * 2);
@@ -123,7 +104,6 @@ function InteractiveNexusCore() {
           }
         }
       }
-
       animationId = requestAnimationFrame(render);
     };
 
@@ -151,7 +131,7 @@ function InteractiveNexusCore() {
       style={{ opacity: 0.85 }}
     />
   );
-}
+}), { ssr: false });
 
 export default function LandingPage() {
   return (
