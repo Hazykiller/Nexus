@@ -56,5 +56,6 @@ export const config = {
     '/search/:path*',
     '/settings/:path*',
     '/hashtag/:path*',
+    '/admin/:path*',
   ],
 };
