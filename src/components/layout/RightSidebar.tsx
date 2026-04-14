@@ -10,10 +10,16 @@ import { useEffect, useState } from 'react';
 import type { User, Hashtag } from '@/types';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 export function RightSidebar() {
+  const pathname = usePathname();
   const [suggestedUsers, setSuggestedUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
+  const [followingLoading, setFollowingLoading] = useState<string | null>(null);
+
+  if (pathname !== '/') return null;
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
   const [followingLoading, setFollowingLoading] = useState<string | null>(null);
 

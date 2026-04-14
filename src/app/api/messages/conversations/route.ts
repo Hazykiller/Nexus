@@ -35,11 +35,13 @@ export async function GET(req: NextRequest) {
 
     const conversations = results.map((r) => {
       const conv = r.c as Record<string, unknown>;
-      const participants = r.participants as Record<string, unknown>[];
+      const participants = r.participants as any[];
       const safeParticipants = participants.map((p) => {
-        const { password, ...safeUser } = p;
+        const nodeProps = p?.properties || p;
+        if (!nodeProps) return null;
+        const { password, ...safeUser } = nodeProps;
         return safeUser;
-      });
+      }).filter(Boolean);
 
       let decryptedLastMessage = r.lastMessage as any;
       if (decryptedLastMessage && decryptedLastMessage.content) {

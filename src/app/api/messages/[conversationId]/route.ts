@@ -86,12 +86,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ con
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const userId = (session.user as Record<string, unknown>).id as string;
-    const isVerified = (session.user as Record<string, unknown>).verified as boolean;
-
-    if (!isVerified) {
-      return NextResponse.json({ error: 'Verification required to send direct messages' }, { status: 403 });
-    }
-
     const { content, mediaUrl, mediaType, sharedPostId } = await req.json();
     if (!content && !mediaUrl && !sharedPostId) {
       return NextResponse.json({ error: 'Message cannot be empty' }, { status: 400 });
