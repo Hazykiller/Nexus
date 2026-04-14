@@ -16,9 +16,10 @@ export async function GET(req: NextRequest) {
     const limit = 10;
     const type = searchParams.get('type') || 'home';
     const targetId = searchParams.get('userId');
+    const reqAura = searchParams.get('aura');
 
     let cypher = '';
-    const params: Record<string, unknown> = { userId, cursor, limit, targetId };
+    const params: Record<string, unknown> = { userId, cursor, limit, targetId, reqAura: reqAura || null };
 
     if (type === 'home') {
       cypher = `
@@ -41,6 +42,7 @@ export async function GET(req: NextRequest) {
         )
         AND NOT (me)-[:BLOCKED]->(author) AND NOT (author)-[:BLOCKED]->(me)
         AND coalesce(p.isDeleted, false) = false
+        AND ($reqAura IS NULL OR p.aura = $reqAura)
         
         OPTIONAL MATCH (p)<-[likes:LIKES]-()
         OPTIONAL MATCH (p)<-[reacts:REACTED]-()
@@ -57,8 +59,9 @@ export async function GET(req: NextRequest) {
              myLike IS NOT NULL AS isLiked,
              myReact.type AS myReaction,
              mySave IS NOT NULL AS isSaved,
+             p.aura AS aura,
              COLLECT(DISTINCT tag.name) AS hashtags
-        RETURN p, author, likeCount, commentCount, shareCount, isLiked, myReaction, isSaved, hashtags
+        RETURN p, author, likeCount, commentCount, shareCount, isLiked, myReaction, isSaved, aura, hashtags
         ORDER BY p.createdAt DESC
         SKIP toInteger($cursor) LIMIT toInteger($limit)`;
     } else if (type === 'user') {
@@ -67,6 +70,7 @@ export async function GET(req: NextRequest) {
         MATCH (author:User {id: $targetId})-[:CREATED]->(p:Post)
         WHERE (p.visibility = 'public' OR author.id = $userId)
         AND coalesce(p.isDeleted, false) = false
+        AND ($reqAura IS NULL OR p.aura = $reqAura)
         OPTIONAL MATCH (p)<-[likes:LIKES]-()
         OPTIONAL MATCH (p)<-[reacts:REACTED]-()
         OPTIONAL MATCH (p)<-[:CREATED]-(cm:Comment)
@@ -82,8 +86,9 @@ export async function GET(req: NextRequest) {
              myLike IS NOT NULL AS isLiked,
              myReact.type AS myReaction,
              mySave IS NOT NULL AS isSaved,
+             p.aura AS aura,
              COLLECT(DISTINCT tag.name) AS hashtags
-        RETURN p, author, likeCount, commentCount, shareCount, isLiked, myReaction, isSaved, hashtags
+        RETURN p, author, likeCount, commentCount, shareCount, isLiked, myReaction, isSaved, aura, hashtags
         ORDER BY p.createdAt DESC
         SKIP toInteger($cursor) LIMIT toInteger($limit)`;
     } else if (type === 'likes') {
@@ -110,8 +115,9 @@ export async function GET(req: NextRequest) {
              myLike IS NOT NULL AS isLiked,
              myReact.type AS myReaction,
              mySave IS NOT NULL AS isSaved,
+             p.aura AS aura,
              COLLECT(DISTINCT tag.name) AS hashtags
-        RETURN p, author, likeCount, commentCount, shareCount, isLiked, myReaction, isSaved, hashtags
+        RETURN p, author, likeCount, commentCount, shareCount, isLiked, myReaction, isSaved, aura, hashtags
         ORDER BY l.createdAt DESC
         SKIP toInteger($cursor) LIMIT toInteger($limit)`;
     } else if (type === 'saved') {
@@ -138,8 +144,9 @@ export async function GET(req: NextRequest) {
              myLike IS NOT NULL AS isLiked,
              myReact.type AS myReaction,
              mySave IS NOT NULL AS isSaved,
+             p.aura AS aura,
              COLLECT(DISTINCT tag.name) AS hashtags
-        RETURN p, author, likeCount, commentCount, shareCount, isLiked, myReaction, isSaved, hashtags
+        RETURN p, author, likeCount, commentCount, shareCount, isLiked, myReaction, isSaved, aura, hashtags
         ORDER BY s.createdAt DESC
         SKIP toInteger($cursor) LIMIT toInteger($limit)`;
     } else {
@@ -158,6 +165,7 @@ export async function GET(req: NextRequest) {
         AND author <> me
         AND NOT (me)-[:BLOCKED]-(author)
         AND coalesce(p.isDeleted, false) = false
+        AND ($reqAura IS NULL OR p.aura = $reqAura)
         
         // Calculate Proximity Scores
         OPTIONAL MATCH (p)-[:HAS_TAG]->(t:Hashtag)
@@ -185,8 +193,9 @@ export async function GET(req: NextRequest) {
              myLike IS NOT NULL AS isLiked,
              myReact.type AS myReaction,
              mySave IS NOT NULL AS isSaved,
+             p.aura AS aura,
              COLLECT(DISTINCT tag.name) AS hashtags
-        RETURN p, author, likeCount, commentCount, shareCount, isLiked, myReaction, isSaved, hashtags
+        RETURN p, author, likeCount, commentCount, shareCount, isLiked, myReaction, isSaved, aura, hashtags
         ORDER BY algoScore DESC, likeCount DESC, p.createdAt DESC
         SKIP toInteger($cursor) LIMIT toInteger($limit)`;
     }
@@ -206,6 +215,7 @@ export async function GET(req: NextRequest) {
         isLiked: r.isLiked ?? false,
         myReaction: r.myReaction,
         isSaved: r.isSaved ?? false,
+        aura: r.aura,
         hashtags: r.hashtags ?? [],
         reactions: {},
         mentions: [],
@@ -240,13 +250,14 @@ export async function POST(req: NextRequest) {
     console.log('--- POST /api/posts DEBUG ---');
     console.log('Content-Type:', contentType);
 
-    let content, images, video, location, visibility, hashtags, mentions, groupId;
+    let content, images, video, location, visibility, aura, hashtags, mentions, groupId;
 
     if (contentType.includes('multipart/form-data')) {
       const formData = await req.formData();
       console.log('FormData received');
       content = formData.get('content') as string;
       visibility = (formData.get('visibility') as string) || 'public';
+      aura = formData.get('aura') as string | undefined;
       location = formData.get('location') as string;
       hashtags = JSON.parse((formData.get('hashtags') as string) || '[]');
       mentions = JSON.parse((formData.get('mentions') as string) || '[]');
@@ -271,6 +282,7 @@ export async function POST(req: NextRequest) {
       video = body.video;
       location = body.location;
       visibility = body.visibility;
+      aura = body.aura;
       hashtags = body.hashtags;
       mentions = body.mentions;
       groupId = body.groupId;
@@ -332,6 +344,7 @@ export async function POST(req: NextRequest) {
          video: $video,
          location: $location,
          visibility: $visibility,
+         aura: $aura,
          isDeleted: $isDeleted,
          moderationReason: $moderationReason,
          createdAt: datetime(),
@@ -345,6 +358,7 @@ export async function POST(req: NextRequest) {
         video: video || '',
         location: location || '',
         visibility: visibility || 'public',
+        aura: aura || null,
         isDeleted,
         moderationReason
       }

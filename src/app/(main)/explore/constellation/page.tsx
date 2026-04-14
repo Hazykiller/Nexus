@@ -5,8 +5,8 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { Network, Users, GitBranch, ArrowLeft, Info, RefreshCw } from 'lucide-react';
 
-// react-force-graph-2d requires browser canvas — must be dynamically imported
-const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), { ssr: false });
+// react-force-graph-3d requires browser canvas — must be dynamically imported
+const ForceGraph3D = dynamic(() => import('react-force-graph-3d'), { ssr: false });
 
 interface ConstellationNode {
   id: string;
@@ -18,6 +18,7 @@ interface ConstellationNode {
   // ForceGraph runtime props
   x?: number;
   y?: number;
+  z?: number;
 }
 
 interface ConstellationLink {
@@ -100,11 +101,16 @@ export default function ConstellationPage() {
   const nodeLabel = (node: ConstellationNode) =>
     `${node.name}\n@${node.username}${node.mutual ? ' · Mutual' : ''}${node.self ? ' · You' : ''}`;
 
-  const handleNodeClick = (node: ConstellationNode) => {
-    setSelected(node);
+  const handleNodeClick = (node: any) => {
+    setSelected(node as ConstellationNode);
     if (graphRef.current) {
-      graphRef.current.centerAt(node.x, node.y, 600);
-      graphRef.current.zoom(3, 600);
+      // Move camera to node over 1000ms
+      const distRatio = 1 + 60 / Math.hypot(node.x || 0, node.y || 0, node.z || 0);
+      graphRef.current.cameraPosition(
+        { x: (node.x || 0) * distRatio, y: (node.y || 0) * distRatio, z: (node.z || 0) * distRatio }, // new position
+        node, // lookAt
+        1000  // ms transition
+      );
     }
   };
 
@@ -180,60 +186,52 @@ export default function ConstellationPage() {
             <p className="text-gray-400 text-sm">Mapping your constellation...</p>
           </div>
         ) : filteredData && filteredData.nodes.length > 0 ? (
-          <ForceGraph2D
+          <ForceGraph3D
             ref={graphRef}
             graphData={{ nodes: filteredData.nodes, links: filteredData.links }}
             backgroundColor="#050508"
-            nodeLabel={nodeLabel}
-            nodeColor={nodeColor}
+            nodeLabel={(node: any) => nodeLabel(node as ConstellationNode)}
+            nodeColor={(node: any) => nodeColor(node as ConstellationNode)}
             nodeRelSize={6}
-            nodeCanvasObject={(node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+            nodeVal={(node: any) => {
               const n = node as ConstellationNode;
-              const r = n.self ? 12 : n.mutual ? 9 : 6;
-              const color = nodeColor(n);
-
-              // Glow
-              if (n.self || n.mutual) {
-                ctx.beginPath();
-                ctx.arc(node.x, node.y, r + 4, 0, 2 * Math.PI);
-                ctx.fillStyle = color + '22';
-                ctx.fill();
-              }
-
-              // Node circle
-              ctx.beginPath();
-              ctx.arc(node.x, node.y, r, 0, 2 * Math.PI);
-              ctx.fillStyle = color;
-              ctx.fill();
-
-              // Label
-              if (globalScale >= 1.2 || n.self) {
-                const label = n.name || n.username || '?';
-                const fontSize = Math.max(8 / globalScale, 4);
-                ctx.font = `${n.self ? 'bold ' : ''}${fontSize}px Inter, sans-serif`;
-                ctx.fillStyle = '#ffffff';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(label, node.x, node.y + r + fontSize + 2);
-              }
+              if (n.self) return 15;
+              if (n.mutual) return 10;
+              return 6;
             }}
+            nodeOpacity={0.9}
             linkColor={(link: any) => {
               const l = link as ConstellationLink;
-              if (l.type === 'peer') return '#ffffff08';
-              if (l.type === 'following') return '#6366f140';
-              return '#f59e0b30';
+              if (l.type === 'peer') return '#ffffff20';
+              if (l.type === 'following') return '#6366f160';
+              return '#f59e0b50';
             }}
             linkWidth={(link: any) => {
-              return link.type === 'peer' ? 0.5 : 1.5;
+              return link.type === 'peer' ? 0.3 : 1;
             }}
-            linkDirectionalArrowLength={(link: any) => link.type !== 'peer' ? 6 : 0}
+            linkDirectionalArrowLength={(link: any) => link.type !== 'peer' ? 4 : 0}
             linkDirectionalArrowRelPos={1}
             linkDirectionalParticles={(link: any) => link.type !== 'peer' ? 2 : 0}
             linkDirectionalParticleSpeed={0.005}
-            linkDirectionalParticleWidth={2}
+            linkDirectionalParticleWidth={1.5}
             onNodeClick={handleNodeClick}
             cooldownTicks={100}
-            onEngineStop={() => graphRef.current?.zoomToFit(400, 80)}
+            onEngineStop={() => {
+               // Auto rotate camera gently
+               if (!selected && graphRef.current) {
+                 const distance = 400;
+                 let angle = 0;
+                 setInterval(() => {
+                    if (!selected && graphRef.current) {
+                      graphRef.current.cameraPosition({
+                        x: distance * Math.sin(angle),
+                        z: distance * Math.cos(angle)
+                      });
+                      angle += Math.PI / 800; // spin speed
+                    }
+                 }, 16);
+               }
+            }}
           />
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center px-4">

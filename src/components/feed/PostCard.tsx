@@ -20,6 +20,7 @@ import {
   X,
   Loader2,
   Star,
+  Sparkles,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -46,6 +47,14 @@ const reactionIcons = {
   haha: { icon: Smile, color: 'text-yellow-500', label: '😂' },
   sad: { icon: Frown, color: 'text-yellow-600', label: '😢' },
   angry: { icon: Angry, color: 'text-orange-500', label: '😡' },
+};
+
+const auraConfig: Record<string, { label: string; icon: string; color: string; bg: string }> = {
+  chill: { label: 'Chill', icon: '☕', color: 'text-blue-300', bg: 'bg-blue-500/10 border-blue-500/20' },
+  hype: { label: 'Hype', icon: '🚀', color: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/20' },
+  deep: { label: 'Deep', icon: '🧠', color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20' },
+  sparkle: { label: 'Sparkle', icon: '✨', color: 'text-amber-300', bg: 'bg-amber-500/10 border-amber-500/20' },
+  heartbreak: { label: 'Heartbreak', icon: '💔', color: 'text-red-500', bg: 'bg-red-500/10 border-red-500/20' },
 };
 
 // ─── Share Modal ─────────────────────────────────────────────────────────────
@@ -293,6 +302,8 @@ export function PostCard({ post, onUpdate }: { post: Post; onUpdate?: () => void
     ? <Star className="w-3 h-3 text-emerald-400 fill-emerald-400 inline-block" />
     : null;
 
+  const auraStyle = post.aura ? auraConfig[post.aura] : null;
+
   return (
     <>
       {showShareModal && (
@@ -363,6 +374,16 @@ export function PostCard({ post, onUpdate }: { post: Post; onUpdate?: () => void
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+
+        {/* Aura Badge */}
+        {auraStyle && (
+          <div className="px-4 pb-2">
+            <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-medium shadow-sm transition-all ${auraStyle.bg} ${auraStyle.color}`}>
+              <span>{auraStyle.icon}</span>
+              {auraStyle.label} Aura
+            </div>
+          </div>
+        )}
 
         {/* Content */}
         {post.content && (

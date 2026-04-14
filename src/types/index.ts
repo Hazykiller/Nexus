@@ -46,6 +46,7 @@ export interface Post {
   sharedPost?: Post;
   shareCaption?: string;
   groupId?: string;
+  aura?: 'chill' | 'hype' | 'deep' | 'sparkle' | 'heartbreak';
 }
 
 export type ReactionType = 'like' | 'love' | 'haha' | 'sad' | 'angry';

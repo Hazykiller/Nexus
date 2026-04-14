@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Image, Video, MapPin, Hash, AtSign, Globe, Lock, Users, X, Loader2, Star } from 'lucide-react';
+import { Image, Video, MapPin, Hash, AtSign, Globe, Lock, Users, X, Loader2, Star, Sparkles } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +21,7 @@ export function CreatePost({ onPostCreated }: { onPostCreated?: () => void }) {
   const [images, setImages] = useState<string[]>([]);
   const [video, setVideo] = useState<string | null>(null);
   const [visibility, setVisibility] = useState<'public' | 'private' | 'close_friends'>('public');
+  const [aura, setAura] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -71,6 +72,7 @@ export function CreatePost({ onPostCreated }: { onPostCreated?: () => void }) {
       const formData = new FormData();
       formData.append('content', content.trim());
       formData.append('visibility', visibility);
+      if (aura) formData.append('aura', aura);
       formData.append('hashtags', JSON.stringify(hashtags));
       formData.append('mentions', JSON.stringify(mentions));
 
@@ -138,7 +140,15 @@ export function CreatePost({ onPostCreated }: { onPostCreated?: () => void }) {
     close_friends: 'Close Friends',
   };
 
-  const isExpanded = isFocused || !!content || images.length > 0 || !!video || isDropdownOpen;
+  const auras = [
+    { id: 'chill', icon: '☕', label: 'Chill', color: 'text-blue-300' },
+    { id: 'hype', icon: '🚀', label: 'Hype', color: 'text-orange-400' },
+    { id: 'deep', icon: '🧠', label: 'Deep', color: 'text-purple-400' },
+    { id: 'sparkle', icon: '✨', label: 'Sparkle', color: 'text-amber-300' },
+    { id: 'heartbreak', icon: '💔', label: 'Heartbreak', color: 'text-red-500' },
+  ];
+
+  const isExpanded = isFocused || !!content || images.length > 0 || !!video || isDropdownOpen || aura !== null;
 
   return (
     <Card
@@ -306,6 +316,31 @@ export function CreatePost({ onPostCreated }: { onPostCreated?: () => void }) {
                     <DropdownMenuItem onClick={() => setVisibility('private')}>
                       <Lock className="w-4 h-4 mr-2" /> Private
                     </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger render={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      title="Set Aura/Mood"
+                      className={`h-7 px-2 rounded-full gap-1 text-xs ${aura ? 'bg-fuchsia-500/10 text-fuchsia-400' : 'text-muted-foreground'}`}
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      <span>{aura ? auras.find(a => a.id === aura)?.label : 'Aura'}</span>
+                    </Button>
+                  } />
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => setAura(null)}>
+                      <span className="w-4 mr-2 text-center">-</span> No Aura
+                    </DropdownMenuItem>
+                    {auras.map(a => (
+                      <DropdownMenuItem key={a.id} onClick={() => setAura(a.id)}>
+                         <span className={`w-4 mr-2 text-center text-base ${a.color}`}>{a.icon}</span> {a.label}
+                      </DropdownMenuItem>
+                    ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
