@@ -18,7 +18,10 @@ function SearchContent() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!query || query.length < 2) return;
+    if (!query || query.length < 2) {
+      setResults({ users: [], posts: [], hashtags: [], groups: [] });
+      return;
+    }
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
@@ -46,50 +49,64 @@ function SearchContent() {
         />
       </div>
 
-      {query.length >= 2 && (
-        <Tabs defaultValue="people">
-          <TabsList className="w-full rounded-xl bg-muted mb-4">
-            <TabsTrigger value="people" className="flex-1 rounded-lg gap-1"><Users className="w-3.5 h-3.5" />People</TabsTrigger>
-            <TabsTrigger value="posts" className="flex-1 rounded-lg gap-1"><FileText className="w-3.5 h-3.5" />Posts</TabsTrigger>
-            <TabsTrigger value="hashtags" className="flex-1 rounded-lg gap-1"><Hash className="w-3.5 h-3.5" />Tags</TabsTrigger>
-            <TabsTrigger value="groups" className="flex-1 rounded-lg gap-1"><UsersRound className="w-3.5 h-3.5" />Groups</TabsTrigger>
-          </TabsList>
+      <Tabs defaultValue="people">
+        <TabsList className="w-full rounded-xl bg-muted mb-4">
+          <TabsTrigger value="people" className="flex-1 rounded-lg gap-1"><Users className="w-3.5 h-3.5" />People</TabsTrigger>
+          <TabsTrigger value="posts" className="flex-1 rounded-lg gap-1"><FileText className="w-3.5 h-3.5" />Posts</TabsTrigger>
+          <TabsTrigger value="hashtags" className="flex-1 rounded-lg gap-1"><Hash className="w-3.5 h-3.5" />Tags</TabsTrigger>
+          <TabsTrigger value="groups" className="flex-1 rounded-lg gap-1"><UsersRound className="w-3.5 h-3.5" />Groups</TabsTrigger>
+        </TabsList>
 
-          <TabsContent value="people" className="space-y-2">
-            {results.users.length > 0 ? results.users.map((u) => (
-              <Link key={u.id} href={`/profile/${u.username}`} className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors">
-                <Avatar className="w-10 h-10">
-                  <AvatarImage src={u.avatar} />
-                  <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-emerald-500 text-white text-sm">{u.name?.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div><p className="text-sm font-semibold">{u.name}</p><p className="text-xs text-muted-foreground">@{u.username}</p></div>
-              </Link>
-            )) : <p className="text-center py-8 text-sm text-muted-foreground">{loading ? 'Searching...' : 'No users found'}</p>}
-          </TabsContent>
+        <TabsContent value="people" className="space-y-2">
+          {loading ? (
+            <p className="text-center py-8 text-sm text-muted-foreground">Searching...</p>
+          ) : query.length < 2 ? (
+            <p className="text-center py-8 text-sm text-muted-foreground">Type at least 2 characters to search</p>
+          ) : results.users.length > 0 ? results.users.map((u) => (
+            <Link key={u.id} href={`/profile/${u.username}`} className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors">
+              <Avatar className="w-10 h-10">
+                <AvatarImage src={u.avatar} />
+                <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-emerald-500 text-white text-sm">{u.name?.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div><p className="text-sm font-semibold">{u.name}</p><p className="text-xs text-muted-foreground">@{u.username}</p></div>
+            </Link>
+          )) : <p className="text-center py-8 text-sm text-muted-foreground">No users found</p>}
+        </TabsContent>
 
-          <TabsContent value="posts" className="space-y-4">
-            {results.posts.length > 0 ? results.posts.map((p) => <PostCard key={p.id} post={p} />) : <p className="text-center py-8 text-sm text-muted-foreground">No posts found</p>}
-          </TabsContent>
+        <TabsContent value="posts" className="space-y-4">
+          {loading ? (
+            <p className="text-center py-8 text-sm text-muted-foreground">Searching...</p>
+          ) : query.length < 2 ? (
+            <p className="text-center py-8 text-sm text-muted-foreground">Type at least 2 characters to search</p>
+          ) : results.posts.length > 0 ? results.posts.map((p) => <PostCard key={p.id} post={p} />) : <p className="text-center py-8 text-sm text-muted-foreground">No posts found</p>}
+        </TabsContent>
 
-          <TabsContent value="hashtags" className="space-y-2">
-            {results.hashtags.length > 0 ? results.hashtags.map((t) => (
-              <Link key={t.name} href={`/hashtag/${t.name}`} className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted">
-                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center"><Hash className="w-5 h-5 text-cyan-400" /></div>
-                <div><p className="text-sm font-semibold">#{t.name}</p><p className="text-xs text-muted-foreground">{t.postCount} posts</p></div>
-              </Link>
-            )) : <p className="text-center py-8 text-sm text-muted-foreground">No hashtags found</p>}
-          </TabsContent>
+        <TabsContent value="hashtags" className="space-y-2">
+          {loading ? (
+            <p className="text-center py-8 text-sm text-muted-foreground">Searching...</p>
+          ) : query.length < 2 ? (
+            <p className="text-center py-8 text-sm text-muted-foreground">Type at least 2 characters to search</p>
+          ) : results.hashtags.length > 0 ? results.hashtags.map((t) => (
+            <Link key={t.name} href={`/hashtag/${t.name}`} className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted">
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center"><Hash className="w-5 h-5 text-cyan-400" /></div>
+              <div><p className="text-sm font-semibold">#{t.name}</p><p className="text-xs text-muted-foreground">{t.postCount} posts</p></div>
+            </Link>
+          )) : <p className="text-center py-8 text-sm text-muted-foreground">No hashtags found</p>}
+        </TabsContent>
 
-          <TabsContent value="groups" className="space-y-2">
-            {results.groups.length > 0 ? results.groups.map((g) => (
-              <Link key={g.id} href={`/groups/${g.id}`} className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center"><UsersRound className="w-5 h-5 text-emerald-400" /></div>
-                <div><p className="text-sm font-semibold">{g.name}</p><p className="text-xs text-muted-foreground">{g.memberCount} members</p></div>
-              </Link>
-            )) : <p className="text-center py-8 text-sm text-muted-foreground">No groups found</p>}
-          </TabsContent>
-        </Tabs>
-      )}
+        <TabsContent value="groups" className="space-y-2">
+          {loading ? (
+            <p className="text-center py-8 text-sm text-muted-foreground">Searching...</p>
+          ) : query.length < 2 ? (
+            <p className="text-center py-8 text-sm text-muted-foreground">Type at least 2 characters to search</p>
+          ) : results.groups.length > 0 ? results.groups.map((g) => (
+            <Link key={g.id} href={`/groups/${g.id}`} className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center"><UsersRound className="w-5 h-5 text-emerald-400" /></div>
+              <div><p className="text-sm font-semibold">{g.name}</p><p className="text-xs text-muted-foreground">{g.memberCount} members</p></div>
+            </Link>
+          )) : <p className="text-center py-8 text-sm text-muted-foreground">No groups found</p>}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -86,6 +86,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ con
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const userId = (session.user as Record<string, unknown>).id as string;
+
     const { content, mediaUrl, mediaType, sharedPostId } = await req.json();
     if (!content && !mediaUrl && !sharedPostId) {
       return NextResponse.json({ error: 'Message cannot be empty' }, { status: 400 });
@@ -97,10 +98,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ con
        MATCH (c:Conversation {id: $conversationId})<-[:PARTICIPATES_IN]-(other:User)
        WHERE other.id <> $userId
        WITH me, c, other
-       // Check if IT IS a conversation I participate in
        MATCH (me)-[:PARTICIPATES_IN]->(c)
        WITH me, c, other
-       // Privacy Logic: If other is private, I MUST follow them to message
        OPTIONAL MATCH (me)-[f:FOLLOWS]->(other)
        RETURN other.privacy as otherPrivacy, f IS NOT NULL as isFollowing LIMIT 1`,
       { userId, conversationId }
@@ -121,19 +120,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ con
     }
 
     const messageId = uuidv4();
-    // Vertex Airtight: Encrypt the entire metadata bundle if it contains sensitive info
-    const payload = JSON.stringify({ content, mediaUrl, sharedPostId });
+    // Encrypt the entire payload bundle
+    const payload = JSON.stringify({ content: content || '', mediaUrl: mediaUrl || '', sharedPostId: sharedPostId || '' });
     const encryptedPayload = encryptMessage(payload);
 
-    // Create message and attach to conversation
+    // Create message node with the encrypted content
     const writeResult = await runQuery(
       `MATCH (me:User {id: $userId})
        MATCH (c:Conversation {id: $conversationId})
        CREATE (msg:Message {
          id: $messageId,
          senderId: $userId,
-         content: $content,
-         mediaUrl: $mediaUrl,
+         content: $encryptedContent,
          mediaType: $mediaType,
          createdAt: datetime()
        })
@@ -144,7 +142,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ con
         userId,
         conversationId,
         messageId,
-        content: encryptedPayload,
+        encryptedContent: encryptedPayload,
         mediaType: mediaType || 'text',
       }
     );
@@ -156,12 +154,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ con
     if (resultingMessage && sender) {
       const formattedMessage = {
         ...resultingMessage,
-        content: content, // send raw unencrypted text over websocket to active participant
+        content: content || '',
+        mediaUrl: mediaUrl || '',
         sender,
       };
 
+      // Real-time push via Pusher
       try {
-        getPusherServer().trigger(
+        await getPusherServer().trigger(
           channels.conversation(conversationId),
           events.NEW_MESSAGE,
           formattedMessage
@@ -179,4 +179,3 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ con
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-

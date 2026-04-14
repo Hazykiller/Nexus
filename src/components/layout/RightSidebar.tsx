@@ -3,11 +3,10 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
-import { TrendingUp, Hash, UserPlus } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import type { User, Hashtag } from '@/types';
+import type { User } from '@/types';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
@@ -19,11 +18,8 @@ export function RightSidebar() {
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
   const [followingLoading, setFollowingLoading] = useState<string | null>(null);
 
-  if (pathname !== '/') return null;
-  const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
-  const [followingLoading, setFollowingLoading] = useState<string | null>(null);
-
   useEffect(() => {
+    if (pathname !== '/') return;
     async function load() {
       try {
         const usersRes = await fetch('/api/recommendations/users').then((r) => r.json());
@@ -35,7 +31,7 @@ export function RightSidebar() {
       }
     }
     load();
-  }, []);
+  }, [pathname]);
 
   const handleFollow = async (userId: string) => {
     setFollowingLoading(userId);
@@ -44,10 +40,8 @@ export function RightSidebar() {
       if (res.ok) {
         setFollowingIds((prev) => new Set(prev).add(userId));
         toast.success('Following!');
-        // Remove from suggestions after a short delay for visual feedback
         setTimeout(() => {
           setSuggestedUsers((prev) => prev.filter((u) => u.id !== userId));
-          // Refresh suggestions
           fetch('/api/recommendations/users')
             .then((r) => r.json())
             .then((data) => {
@@ -65,6 +59,9 @@ export function RightSidebar() {
       setFollowingLoading(null);
     }
   };
+
+  // Only render on home page
+  if (pathname !== '/') return null;
 
   return (
     <aside className="hidden xl:block w-[320px] shrink-0">
@@ -127,8 +124,6 @@ export function RightSidebar() {
             <p className="text-xs text-muted-foreground text-center py-2">No suggestions yet</p>
           )}
         </div>
-
-
 
         {/* Footer */}
         <div className="px-1 text-[11px] text-muted-foreground leading-relaxed">
