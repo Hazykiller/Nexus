@@ -130,7 +130,7 @@ export default function SettingsPage() {
                 const { device, browser, icon } = parseUserAgent(session.userAgent || '');
                 const isFirst = index === 0;
                 return (
-                  <div key={session.id} className={`flex items-start gap-3 p-3 rounded-xl transition-all ${isFirst ? 'bg-cyan-500/5 border border-cyan-500/20' : 'bg-muted/30 border border-transparent'}`}>
+                  <div key={session.id} className={`flex items-start gap-3 p-3 rounded-xl transition-all ${isFirst ? 'bg-cyan-500/5 border border-cyan-500/20' : 'bg-muted/30 border border-transparent hover:bg-muted/50'}`}>
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isFirst ? 'bg-cyan-500/10 text-cyan-400' : 'bg-muted text-muted-foreground'}`}>
                       {icon}
                     </div>
@@ -154,6 +154,26 @@ export default function SettingsPage() {
                         </span>
                       </div>
                     </div>
+                    {!isFirst && (
+                      <button
+                        onClick={async () => {
+                          try {
+                            const res = await fetch('/api/users/login-activity', {
+                              method: 'DELETE',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ sessionId: session.id }),
+                            });
+                            if (res.ok) {
+                              setSessions(prev => prev.filter(s => s.id !== session.id));
+                              toast.success('Session revoked');
+                            }
+                          } catch { toast.error('Failed to revoke'); }
+                        }}
+                        className="text-[10px] px-2 py-1 rounded-lg text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all shrink-0 font-medium"
+                      >
+                        Revoke
+                      </button>
+                    )}
                   </div>
                 );
               })}

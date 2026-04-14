@@ -1,26 +1,49 @@
 # Vertex Test Accounts
 
-Use these credentials to test the Vertex platform. All passwords are set to 'Password123!'
+All accounts use the same password: Password123!
 
 ---
 
-## 🛠️ Admin Account
+## 🛡️ Admin Account
 - **Email**: admin@vertex.social
-- **Status**: Admin
-- **Role**: Platform Management
+- **Username**: admin
+- **Password**: Password123!
+- **Role**: Platform Administrator
+- **Access**: Full platform + Admin Console (/admin)
 
-## 👥 Standard Accounts
-- **Email 1**: adult1@vertex.social
-- **Email 2**: adult2@vertex.social
-- **Email 3**: adult3@vertex.social
-- **Email 4**: adult4@vertex.social
-- **Status**: Full Access
+## 👥 Standard Adult Accounts (18+)
+| # | Email | Username |
+|---|---|---|
+| 1 | adult1@vertex.social | adult1 |
+| 2 | adult2@vertex.social | adult2 |
+| 3 | adult3@vertex.social | adult3 |
+| 4 | adult4@vertex.social | adult4 |
+- **Access**: Full platform access (posts, DMs, groups, confessions, stories)
 
-## 🔒 Teen Accounts (13-18)
-- **Email 1**: teen1@vertex.social
-- **Email 2**: teen2@vertex.social
-- **Email 3**: teen3@vertex.social
-- **Status**: Restricted Access (Safe Space Mode Active)
+## 🔒 Teen Accounts (13-17, Restricted)
+| # | Email | Username |
+|---|---|---|
+| 1 | teen1@vertex.social | teen1 |
+| 2 | teen2@vertex.social | teen2 |
+| 3 | teen3@vertex.social | teen3 |
+- **Access**: Restricted (Safe Space Mode active — NSFW content auto-blocked)
+
+---
+
+## Platform Features Available to All Accounts
+- Feed, Explore, Search, Stories, Groups
+- Private Messaging (E2EE AES-256-GCM)
+- Anonymous Confessions (/confessions)
+- AI Chat Assistant (/chatbot)
+- Profile editing, notifications
+- Settings with Login Activity Tracker
+
+## Admin-Only Features
+- Neo4j Graph Visualizer (/admin)
+- User Manager with ban/promote/delete
+- Security Event Log (live audit trail)
+- Cloud Monitor (real-time performance)
+- AI Moderation Dashboard (scan/review/purge)
 
 ---
 **Vertex — Share what matters.**
