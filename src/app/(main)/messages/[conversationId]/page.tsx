@@ -73,6 +73,8 @@ export default function ChatViewPage() {
       return;
     }
     
+    if (!pusher) return;
+    
     const channelName = channels.conversation(conversationId);
     pusher.unsubscribe(channelName);
     const channel = pusher.subscribe(channelName);
@@ -258,16 +260,7 @@ export default function ChatViewPage() {
       onDrop={handleDrop}
       className="flex flex-col h-[calc(100vh-140px)] md:h-[calc(100vh-80px)] xl:h-screen w-full lg:max-w-[700px] xl:max-w-none bg-background relative"
     >
-      {/* Drag overlay */}
-      {isDragging && (
-        <div className="absolute inset-0 z-50 bg-background/90 backdrop-blur-sm flex items-center justify-center pointer-events-none">
-          <div className="flex flex-col items-center gap-3 p-8 rounded-2xl border-2 border-dashed border-cyan-500 bg-cyan-500/5">
-            <ImageIcon className="w-12 h-12 text-cyan-400 animate-bounce" />
-            <p className="text-cyan-400 font-semibold text-lg">Drop image to attach</p>
-            <p className="text-muted-foreground text-sm">Release to upload</p>
-          </div>
-        </div>
-      )}
+      {/* Removed full screen drag overlay as per user request */}
 
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card/95 backdrop-blur z-10 sticky top-0 shrink-0">
@@ -403,8 +396,12 @@ export default function ChatViewPage() {
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onPaste={handlePaste}
-            placeholder="Message... (drop or paste images)"
-            className="flex-1 rounded-full bg-muted border-none focus-visible:ring-1 focus-visible:ring-cyan-500 h-10 px-4"
+            placeholder={isDragging ? "Drop image here..." : "Message... (drop or paste images)"}
+            className={`flex-1 rounded-full border-none h-10 px-4 transition-all ${
+              isDragging 
+                ? 'bg-cyan-500/20 ring-2 ring-cyan-500 text-cyan-500 placeholder:text-cyan-500 font-medium' 
+                : 'bg-muted focus-visible:ring-1 focus-visible:ring-cyan-500'
+            }`}
           />
           <Button
             type="submit"

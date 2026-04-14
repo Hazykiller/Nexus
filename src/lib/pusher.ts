@@ -4,15 +4,24 @@ import PusherClient from 'pusher-js';
 // Server-side Pusher instance (singleton)
 let pusherServer: Pusher | null = null;
 
-export function getPusherServer(): Pusher {
+export function getPusherServer(): Pusher | null {
   if (!pusherServer) {
-    pusherServer = new Pusher({
-      appId: process.env.PUSHER_APP_ID!,
-      key: process.env.NEXT_PUBLIC_PUSHER_KEY!,
-      secret: process.env.PUSHER_SECRET!,
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-      useTLS: true,
-    });
+    if (!process.env.PUSHER_APP_ID || !process.env.NEXT_PUBLIC_PUSHER_KEY || !process.env.PUSHER_SECRET || !process.env.NEXT_PUBLIC_PUSHER_CLUSTER) {
+      console.warn('Pusher environment variables are missing. Real-time features disabled.');
+      return null;
+    }
+    try {
+      pusherServer = new Pusher({
+        appId: process.env.PUSHER_APP_ID,
+        key: process.env.NEXT_PUBLIC_PUSHER_KEY,
+        secret: process.env.PUSHER_SECRET,
+        cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+        useTLS: true,
+      });
+    } catch (e) {
+      console.error('Failed to initialize Pusher server:', e);
+      return null;
+    }
   }
   return pusherServer;
 }
@@ -20,12 +29,21 @@ export function getPusherServer(): Pusher {
 // Client-side Pusher instance (singleton)
 let pusherClient: PusherClient | null = null;
 
-export function getPusherClient(): PusherClient {
+export function getPusherClient(): PusherClient | null {
   if (!pusherClient) {
-    pusherClient = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-      authEndpoint: '/api/pusher/auth',
-    });
+    if (!process.env.NEXT_PUBLIC_PUSHER_KEY || !process.env.NEXT_PUBLIC_PUSHER_CLUSTER) {
+      console.warn('Pusher client environment variables are missing.');
+      return null;
+    }
+    try {
+      pusherClient = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY, {
+        cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+        authEndpoint: '/api/pusher/auth',
+      });
+    } catch (e) {
+      console.error('Failed to initialize Pusher client:', e);
+      return null;
+    }
   }
   return pusherClient;
 }

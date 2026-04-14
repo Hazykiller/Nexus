@@ -161,11 +161,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ con
 
       // Real-time push via Pusher
       try {
-        await getPusherServer().trigger(
-          channels.conversation(conversationId),
-          events.NEW_MESSAGE,
-          formattedMessage
-        );
+        const pusher = getPusherServer();
+        if (pusher) {
+          await pusher.trigger(
+            channels.conversation(conversationId),
+            events.NEW_MESSAGE,
+            formattedMessage
+          );
+        }
       } catch (pusherErr) {
         console.error('Pusher error:', pusherErr);
       }
