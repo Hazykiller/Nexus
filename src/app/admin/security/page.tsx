@@ -46,7 +46,7 @@ export default function AdminSecurityPage() {
   const guardBotEvents = events.filter(e => e.details.includes('GuardBot'));
 
   return (
-    <div className="p-6 space-y-6 text-white min-h-screen">
+    <div className="p-3 md:p-6 space-y-4 md:space-y-6 text-white min-h-screen">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -71,7 +71,7 @@ export default function AdminSecurityPage() {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
         <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-4">
           <div className="flex items-center gap-2 mb-1">
             <XCircle className="w-4 h-4 text-red-400" />
@@ -96,7 +96,7 @@ export default function AdminSecurityPage() {
       </div>
 
       {/* Filter tabs */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap overflow-x-auto pb-1">
         {['all', 'forbidden_action', 'moderation_breach', 'unauthorized_access'].map(f => (
           <button
             key={f}

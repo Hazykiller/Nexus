@@ -133,33 +133,33 @@ export default function AdminGraphDashboard() {
   return (
     <div className="h-screen w-full relative bg-[#050508] overflow-hidden">
       {/* Header Overlay */}
-      <div className="absolute top-0 left-0 right-0 z-20 p-5 pointer-events-none"
+      <div className="absolute top-0 left-0 right-0 z-20 p-3 md:p-5 pointer-events-none"
            style={{ background: 'linear-gradient(to bottom, rgba(5,5,8,0.95), transparent)' }}>
-        <h1 className="text-3xl font-bold" style={{
+        <h1 className="text-xl md:text-3xl font-bold" style={{
           background: 'linear-gradient(135deg, #22d3ee, #34d399)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent'
         }}>
           Vertex Admin — Neo4j Global Operations
         </h1>
-        <p className="text-gray-400 text-sm mt-1">Live visualization of the social network graph database</p>
+        <p className="text-gray-400 text-xs md:text-sm mt-1">Live visualization of the social network graph database</p>
         <Link
           href="/admin/telemetry"
-          className="mt-3 inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold hover:bg-cyan-500/20 transition-all pointer-events-auto"
+          className="mt-2 md:mt-3 inline-flex items-center gap-2 px-3 md:px-4 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold hover:bg-cyan-500/20 transition-all pointer-events-auto"
         >
           <Cloud className="w-3.5 h-3.5" /> Cloud Monitor
         </Link>
       </div>
 
       {/* Stats Bar */}
-      <div className="absolute top-36 left-5 z-20 flex flex-col gap-3">
-        <div className="flex gap-3">
+      <div className="absolute top-24 md:top-36 left-3 md:left-5 z-20 flex flex-col gap-2 md:gap-3 max-w-[calc(100vw-24px)]">
+        <div className="flex flex-wrap gap-2 md:gap-3">
           {[
             { label: 'Users', value: stats.users, color: '#06b6d4' },
             { label: 'Posts', value: stats.posts, color: '#10b981' },
-            { label: 'Relationships', value: stats.relationships, color: '#38bdf8' },
+            { label: 'Rels', value: stats.relationships, color: '#38bdf8' },
           ].map(s => (
-            <div key={s.label} className="rounded-xl px-4 py-2 text-sm font-semibold backdrop-blur-md"
+            <div key={s.label} className="rounded-xl px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-semibold backdrop-blur-md"
                  style={{ background: 'rgba(255,255,255,0.05)', border: `1px solid ${s.color}40`, color: s.color }}>
               {s.value} {s.label}
             </div>
@@ -167,22 +167,22 @@ export default function AdminGraphDashboard() {
         </div>
 
         {/* Global Security Monitor */}
-        <div className="rounded-xl px-4 py-3 min-w-[280px] backdrop-blur-xl border border-red-500/30 bg-red-500/5 shadow-lg shadow-red-500/5">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-red-400 text-xs font-bold tracking-widest uppercase flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /> Security Health
+        <div className="rounded-xl px-3 md:px-4 py-2 md:py-3 min-w-[200px] md:min-w-[280px] backdrop-blur-xl border border-red-500/30 bg-red-500/5 shadow-lg shadow-red-500/5">
+          <div className="flex items-center justify-between mb-1.5 md:mb-2">
+            <span className="text-red-400 text-[10px] md:text-xs font-bold tracking-widest uppercase flex items-center gap-1.5 md:gap-2">
+              <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-red-500 animate-pulse" /> Security Health
             </span>
-            <span className="text-red-400 font-mono text-sm font-bold">{stats.securityEvents} Alerts</span>
+            <span className="text-red-400 font-mono text-xs md:text-sm font-bold">{stats.securityEvents} Alerts</span>
           </div>
           <div className="h-1 bg-white/5 rounded-full overflow-hidden">
              <div className="h-full bg-red-500 transition-all duration-1000" style={{ width: `${Math.min(100, (stats.securityEvents / 10) * 100)}%` }} />
           </div>
-          <p className="text-[10px] text-gray-500 mt-2">Active logging of unauthorized 403 API breaches.</p>
+          <p className="text-[9px] md:text-[10px] text-gray-500 mt-1.5 md:mt-2">Active logging of unauthorized 403 API breaches.</p>
         </div>
       </div>
 
-      {/* Legend */}
-      <div className="absolute top-5 right-5 z-20 rounded-2xl p-4 flex flex-col gap-2 text-sm"
+      {/* Legend - hidden on mobile */}
+      <div className="absolute top-5 right-5 z-20 rounded-2xl p-4 hidden md:flex flex-col gap-2 text-sm"
            style={{ background: 'rgba(5,5,10,0.9)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(20px)' }}>
         <div className="text-gray-300 font-semibold mb-1 text-xs uppercase tracking-wider">Telemetry Legend</div>
         <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-cyan-400" /><span className="text-gray-300">User Node</span></div>

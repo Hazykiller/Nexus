@@ -93,16 +93,16 @@ export default function ModerationDashboard() {
   if (loading) return <div className="p-8 text-white">Engaging Security Console...</div>;
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-3 md:p-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-8 gap-3">
         <div className="flex items-center gap-3">
-          <ShieldAlert className="w-8 h-8 text-red-500" />
-          <h1 className="text-3xl font-bold text-white tracking-tight">Auto-Moderation AI</h1>
+          <ShieldAlert className="w-6 h-6 md:w-8 md:h-8 text-red-500" />
+          <h1 className="text-xl md:text-3xl font-bold text-white tracking-tight">Auto-Moderation AI</h1>
         </div>
         <button
           onClick={triggerManualModeration}
           disabled={runningManual}
-          className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/25"
+          className="flex items-center gap-2 px-3 md:px-5 py-2 md:py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/25 text-sm"
         >
           {runningManual ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Bot className="w-5 h-5" />}
           {runningManual ? 'Scanning Network...' : 'Run Scan Now'}

@@ -19,7 +19,7 @@ export function RightSidebar() {
   const [followingLoading, setFollowingLoading] = useState<string | null>(null);
 
   useEffect(() => {
-    if (pathname !== '/') return;
+    if (pathname !== '/feed') return;
     async function load() {
       try {
         const usersRes = await fetch('/api/recommendations/users').then((r) => r.json());
@@ -61,7 +61,7 @@ export function RightSidebar() {
   };
 
   // Only render on home page
-  if (pathname !== '/') return null;
+  if (pathname !== '/feed') return null;
 
   return (
     <aside className="hidden xl:block w-[320px] shrink-0">

@@ -87,19 +87,19 @@ export default function CloudMonitorPage() {
   const threatLevel = data?.security.threatLevel ?? 'LOW';
 
   return (
-    <div className="min-h-screen bg-[#050508] text-white p-6 space-y-6">
+    <div className="min-h-screen bg-[#050508] text-white p-3 md:p-6 space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-3 mb-1">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
               <Cloud className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+            <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
               Cloud Monitoring
             </h1>
           </div>
-          <p className="text-gray-500 text-sm ml-12">
+          <p className="text-gray-500 text-xs md:text-sm ml-12 hidden sm:block">
             Real-time performance, logging & tracing — Vercel Edge + Neo4j AuraDB
           </p>
         </div>

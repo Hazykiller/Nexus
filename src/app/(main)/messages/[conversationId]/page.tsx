@@ -1,17 +1,16 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MoveLeft, Send, Image as ImageIcon } from 'lucide-react';
+import { MoveLeft, Send, Image as ImageIcon, X, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { safeTimeFormat } from '@/lib/dateUtils';
 import { getPusherClient, channels, events } from '@/lib/pusher';
-import { CldUploadWidget } from 'next-cloudinary';
 
 interface Message {
   id: string;
@@ -38,8 +37,13 @@ export default function ChatViewPage() {
   const [loading, setLoading] = useState(true);
   const [inputText, setInputText] = useState('');
   const [mediaUrl, setMediaUrl] = useState('');
+  const [mediaPreview, setMediaPreview] = useState('');
+  const [uploading, setUploading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function fetchMessages() {
@@ -70,8 +74,6 @@ export default function ChatViewPage() {
     }
     
     const channelName = channels.conversation(conversationId);
-    
-    // Unbind and rebind to prevent duplicates if mounted multiple times
     pusher.unsubscribe(channelName);
     const channel = pusher.subscribe(channelName);
 
@@ -89,14 +91,122 @@ export default function ChatViewPage() {
   }, [conversationId]);
 
   useEffect(() => {
-    // Determine target based on scrolling behavior wanted.
-    // For now, auto scroll to bottom when messages update
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // --- Native Upload via Cloudinary signed upload ---
+  const uploadFile = useCallback(async (file: File) => {
+    setUploading(true);
+    // Show local preview immediately
+    const localPreview = URL.createObjectURL(file);
+    setMediaPreview(localPreview);
+
+    try {
+      // Get signature from our API
+      const signRes = await fetch('/api/upload/sign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folder: 'vertex_messages' }),
+      });
+      const signData = await signRes.json();
+      if (!signData.success) throw new Error('Signing failed');
+
+      const { signature, timestamp, cloudName, apiKey, folder, uploadUrl } = signData.data;
+
+      // Upload directly to Cloudinary
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('api_key', apiKey);
+      formData.append('timestamp', timestamp);
+      formData.append('signature', signature);
+      formData.append('folder', folder);
+
+      const uploadRes = await fetch(uploadUrl, { method: 'POST', body: formData });
+      const uploadData = await uploadRes.json();
+
+      if (uploadData.secure_url) {
+        setMediaUrl(uploadData.secure_url);
+        setMediaPreview(uploadData.secure_url);
+      } else {
+        throw new Error('Upload failed');
+      }
+    } catch (err) {
+      console.error('Upload error:', err);
+      setMediaPreview('');
+      setMediaUrl('');
+    } finally {
+      setUploading(false);
+    }
+  }, []);
+
+  // --- File input handler ---
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      uploadFile(file);
+    }
+    // Reset so same file can be re-selected
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }, [uploadFile]);
+
+  // --- Drag and drop handlers ---
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set false if leaving the drop zone entirely
+    if (dropZoneRef.current && !dropZoneRef.current.contains(e.relatedTarget as Node)) {
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      const file = files[0];
+      if (file.type.startsWith('image/')) {
+        uploadFile(file);
+      }
+    }
+  }, [uploadFile]);
+
+  // --- Paste handler (Ctrl+V images) ---
+  const handlePaste = useCallback((e: React.ClipboardEvent) => {
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        const file = items[i].getAsFile();
+        if (file) {
+          e.preventDefault();
+          uploadFile(file);
+          break;
+        }
+      }
+    }
+  }, [uploadFile]);
+
+  const clearMedia = useCallback(() => {
+    setMediaUrl('');
+    setMediaPreview('');
+  }, []);
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if ((!inputText.trim() && !mediaUrl) || sending) return;
+    if ((!inputText.trim() && !mediaUrl) || sending || uploading) return;
 
     const tempId = `temp-${Date.now()}`;
     const tempMsg: Message = {
@@ -115,6 +225,7 @@ export default function ChatViewPage() {
     setMessages((prev) => [...prev, tempMsg]);
     setInputText('');
     setMediaUrl('');
+    setMediaPreview('');
     setSending(true);
 
     try {
@@ -126,9 +237,10 @@ export default function ChatViewPage() {
       const data = await res.json();
       if (data.success) {
         setMessages((prev) => prev.map((m) => (m.id === tempId ? data.data : m)));
+      } else {
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
       }
     } catch {
-      // Revert if failed
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
     } finally {
       setSending(false);
@@ -138,7 +250,25 @@ export default function ChatViewPage() {
   const partnerInfo = partner;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-140px)] md:h-[calc(100vh-80px)] xl:h-screen w-full lg:max-w-[700px] xl:max-w-none bg-background">
+    <div
+      ref={dropZoneRef}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      className="flex flex-col h-[calc(100vh-140px)] md:h-[calc(100vh-80px)] xl:h-screen w-full lg:max-w-[700px] xl:max-w-none bg-background relative"
+    >
+      {/* Drag overlay */}
+      {isDragging && (
+        <div className="absolute inset-0 z-50 bg-background/90 backdrop-blur-sm flex items-center justify-center pointer-events-none">
+          <div className="flex flex-col items-center gap-3 p-8 rounded-2xl border-2 border-dashed border-cyan-500 bg-cyan-500/5">
+            <ImageIcon className="w-12 h-12 text-cyan-400 animate-bounce" />
+            <p className="text-cyan-400 font-semibold text-lg">Drop image to attach</p>
+            <p className="text-muted-foreground text-sm">Release to upload</p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card/95 backdrop-blur z-10 sticky top-0 shrink-0">
         <Link href="/messages" className="md:hidden p-2 -ml-2 rounded-full hover:bg-muted text-muted-foreground mr-1">
@@ -205,9 +335,9 @@ export default function ChatViewPage() {
                     } ${msg.mediaUrl ? 'p-2' : ''}`}
                   >
                     {msg.mediaUrl && (
-                      <img src={msg.mediaUrl} alt="attachment" className="max-w-full sm:max-w-[200px] rounded-lg mb-2 object-cover" />
+                      <img src={msg.mediaUrl} alt="attachment" className="max-w-full sm:max-w-[240px] rounded-lg mb-1 object-cover cursor-pointer hover:opacity-90 transition-opacity" onClick={() => window.open(msg.mediaUrl, '_blank')} />
                     )}
-                    {msg.content}
+                    {msg.content && <span>{msg.content}</span>}
                   </div>
                   <span className="text-[10px] text-muted-foreground mt-1 px-1">
                     {safeTimeFormat(msg.createdAt)}
@@ -221,52 +351,64 @@ export default function ChatViewPage() {
       </div>
 
       {/* Input Area */}
-      <div className="p-3 bg-card border-t border-border mt-auto shrink-0 flex flex-col gap-2">
-        {mediaUrl && (
-          <div className="relative inline-block mb-2 self-start bg-muted p-2 rounded-xl">
-            <img src={mediaUrl} alt="Upload preview" className="h-20 w-auto rounded-lg object-cover" />
-            <Button
-              type="button"
-              variant="destructive"
-              size="icon"
-              className="absolute -top-2 -right-2 w-6 h-6 rounded-full"
-              onClick={() => setMediaUrl('')}
-            >
-              <span className="text-xs">×</span>
-            </Button>
+      <div className="p-3 bg-card border-t border-border mt-auto shrink-0">
+        {/* Image preview */}
+        {mediaPreview && (
+          <div className="mb-3 relative inline-block">
+            <div className="relative group rounded-xl overflow-hidden border border-border bg-muted/50 p-1.5">
+              <img src={mediaPreview} alt="Preview" className="h-20 w-auto rounded-lg object-cover" />
+              {uploading && (
+                <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+                  <Loader2 className="w-5 h-5 text-white animate-spin" />
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={clearMedia}
+                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-400 transition-colors shadow-lg"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
           </div>
         )}
-        <form onSubmit={handleSendMessage} className="flex gap-2 w-full">
-          <CldUploadWidget
-            uploadPreset="vertex_social"
-            onSuccess={(result: any) => {
-              const url = result?.info?.secure_url;
-              if (url) {
-                setMediaUrl(url);
-              }
-            }}
+
+        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+          
+          {/* Image button */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="shrink-0 text-muted-foreground hover:text-cyan-400 hover:bg-cyan-400/10 rounded-full h-10 w-10"
           >
-            {({ open }: { open: () => void }) => (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => open()}
-                className="shrink-0 text-muted-foreground hover:text-cyan-400 hover:bg-cyan-400/10 rounded-full"
-              >
-                <ImageIcon className="w-5 h-5" />
-              </Button>
+            {uploading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <ImageIcon className="w-5 h-5" />
             )}
-          </CldUploadWidget>
+          </Button>
+
           <Input
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="Message..."
+            onPaste={handlePaste}
+            placeholder="Message... (drop or paste images)"
             className="flex-1 rounded-full bg-muted border-none focus-visible:ring-1 focus-visible:ring-cyan-500 h-10 px-4"
           />
           <Button
             type="submit"
-            disabled={(!inputText.trim() && !mediaUrl) || sending}
+            disabled={(!inputText.trim() && !mediaUrl) || sending || uploading}
             className="shrink-0 rounded-full h-10 px-4 flex items-center gap-2 bg-gradient-to-r from-cyan-600 to-emerald-600 text-white hover:from-cyan-500 hover:to-emerald-500 disabled:opacity-50"
           >
             <Send className="w-4 h-4" />
