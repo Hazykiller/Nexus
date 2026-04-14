@@ -21,6 +21,7 @@ import {
   ShieldAlert,
   Network,
   Bot,
+  Ghost,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { signOut } from 'next-auth/react';
@@ -37,6 +38,7 @@ const navItems = [
   { href: '/notifications', label: 'Notifications', icon: Bell },
   { href: '/stories', label: 'Stories', icon: BookOpen },
   { href: '/groups', label: 'Groups', icon: Users },
+  { href: '/confessions', label: 'Confessions', icon: Ghost },
   { href: '/chatbot', label: 'AI Chat', icon: Bot },
 ];
 

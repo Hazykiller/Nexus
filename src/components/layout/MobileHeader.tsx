@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Menu, Settings, LogOut, ShieldAlert, Layers, Bot } from 'lucide-react';
+import { Menu, Settings, LogOut, ShieldAlert, Layers, Bot, Ghost } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -44,6 +44,10 @@ export function MobileHeader() {
             <Link href="/constellation" className="flex items-center gap-3 px-3 py-3 rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
               <Layers className="w-5 h-5 text-emerald-400" />
               <span className="font-medium">Constellation</span>
+            </Link>
+            <Link href="/confessions" className="flex items-center gap-3 px-3 py-3 rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+              <Ghost className="w-5 h-5 text-violet-400" />
+              <span className="font-medium">Confessions</span>
             </Link>
 
             {user?.isAdmin && (

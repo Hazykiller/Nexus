@@ -1,8 +1,10 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
-import { runSingleQuery } from '@/lib/neo4j';
+import { runSingleQuery, runWriteQuery } from '@/lib/neo4j';
 import { decryptAtRest, hashForLookup } from '@/lib/security/dbEncryption';
+import { getRateLimit } from '@/lib/rate-limit';
+import { logSecurityEvent } from '@/lib/security/security';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -12,8 +14,16 @@ export const authOptions: NextAuthOptions = {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) return null;
+
+        // Account Lockout: 5 failed attempts per 15 minutes per email
+        const lockoutKey = `login-${credentials.email.toLowerCase().trim()}`;
+        const rl = getRateLimit(lockoutKey, 5, 15 * 60 * 1000);
+        if (!rl.success) {
+          console.log(`[Security] Account locked: ${credentials.email} — too many failed attempts`);
+          throw new Error('Account temporarily locked. Too many failed login attempts. Please try again in 15 minutes.');
+        }
 
         // Use the deterministic hash to find the user
         const emailHash = hashForLookup(credentials.email);
@@ -21,6 +31,7 @@ export const authOptions: NextAuthOptions = {
           u: {
             id: string; email: string; username: string; name: string;
             password: string; avatar: string; verified: boolean; isAdmin?: boolean;
+            banned?: boolean;
           };
         }>(
           'MATCH (u:User {emailHash: $emailHash}) RETURN u',
@@ -29,9 +40,39 @@ export const authOptions: NextAuthOptions = {
 
         if (!result?.u) return null;
         if (!result.u.verified) return null; // Must be verified to login
+        if (result.u.banned) {
+          throw new Error('Your account has been suspended. Contact admin.');
+        }
 
         const isValid = await bcrypt.compare(credentials.password, result.u.password);
-        if (!isValid) return null;
+        if (!isValid) {
+          // Log failed login attempt
+          await logSecurityEvent(
+            'unauthorized_access',
+            `Failed login attempt for ${credentials.email} (${rl.remaining} attempts remaining)`,
+            result.u.id
+          );
+          return null;
+        }
+
+        // Successful login — log login activity
+        const ip = (req?.headers && typeof req.headers === 'object' && 'x-forwarded-for' in req.headers)
+          ? (req.headers as Record<string, string>)['x-forwarded-for']
+          : 'unknown';
+        const userAgent = (req?.headers && typeof req.headers === 'object' && 'user-agent' in req.headers)
+          ? (req.headers as Record<string, string>)['user-agent']
+          : 'unknown';
+
+        await runWriteQuery(
+          `CREATE (la:LoginActivity {
+            id: randomUUID(),
+            userId: $userId,
+            ip: $ip,
+            userAgent: $userAgent,
+            createdAt: datetime()
+          })`,
+          { userId: result.u.id, ip: ip || 'unknown', userAgent: userAgent || 'unknown' }
+        );
 
         return {
           id: result.u.id,
