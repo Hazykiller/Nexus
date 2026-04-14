@@ -5,8 +5,8 @@ import { Loader2, Cloud } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 
-// ForceGraph3D requires browser canvas — must be dynamically imported (no SSR)
-const ForceGraph3D = dynamic(() => import('react-force-graph-3d'), { ssr: false });
+// ForceGraph2D requires browser canvas — must be dynamically imported (no SSR)
+const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), { ssr: false });
 
 interface GraphNode {
   id: string;
@@ -65,9 +65,8 @@ export default function AdminGraphDashboard() {
     }
     loadGraph();
 
-    // Auto-refresh the admin graph every 5 seconds for real-time monitoring
-    const interval = setInterval(loadGraph, 5000);
-    return () => clearInterval(interval);
+    // Auto-refresh interval removed to prevent physics exploding and layout resets
+    // We export it via a manual refresh button instead
   }, []);
 
   const nodeColor = useCallback((node: any) => {
@@ -84,7 +83,32 @@ export default function AdminGraphDashboard() {
     return 'rgba(148,163,184,0.5)';
   }, []);
 
+  const nodeCanvasObject = useCallback((node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+    let size = 4;
+    let color = '#94a3b8';
+    if (node.label === 'User') { size = 6; color = '#06b6d4'; }
+    if (node.label === 'Post') { size = 4; color = '#10b981'; }
+    if (node.label === 'SecurityEvent') { size = 7; color = '#ef4444'; }
 
+    // Draw circle
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, size, 0, 2 * Math.PI);
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    // Glow effect
+    ctx.shadowBlur = node.label === 'SecurityEvent' ? 20 : 10;
+    ctx.shadowColor = color;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Label
+    const fontSize = Math.max(3, 10 / globalScale);
+    ctx.font = `${node.label === 'SecurityEvent' ? 'bold' : ''} ${fontSize}px Inter, sans-serif`;
+    ctx.fillStyle = node.label === 'SecurityEvent' ? '#ef4444' : 'rgba(255,255,255,0.9)';
+    ctx.textAlign = 'center';
+    ctx.fillText(node.name || node.id, node.x, node.y + size + fontSize);
+  }, []);
 
   if (isLoading) {
     return (
@@ -124,6 +148,12 @@ export default function AdminGraphDashboard() {
         >
           <Cloud className="w-3.5 h-3.5" /> Cloud Monitor
         </Link>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-2 md:mt-3 ml-2 inline-flex items-center gap-2 px-3 md:px-4 py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-bold hover:bg-purple-500/20 transition-all pointer-events-auto"
+        >
+          ↻ Refresh Graph
+        </button>
       </div>
 
       {/* Stats Bar */}
@@ -170,7 +200,7 @@ export default function AdminGraphDashboard() {
       </div>
 
       {/* Force Graph Canvas */}
-      <ForceGraph3D
+      <ForceGraph2D
         graphData={graphData}
         nodeLabel={(node: any) => `${node.label}: ${node.name || node.id}`}
         nodeColor={nodeColor}
@@ -180,13 +210,12 @@ export default function AdminGraphDashboard() {
         linkCurvature={0.25}
         backgroundColor="#050508"
         nodeRelSize={5}
-        nodeVal={(node: any) => {
-          if (node.label === 'User') return 6;
-          if (node.label === 'Post') return 4;
-          if (node.label === 'SecurityEvent') return 8;
-          return 4;
-        }}
-        nodeOpacity={0.9}
+        nodeCanvasObject={nodeCanvasObject}
+        nodeCanvasObjectMode={() => 'replace'}
+        d3AlphaDecay={0.05}     // Increased to cool down faster
+        d3VelocityDecay={0.8}   // Drastically increased friction to stop exploding
+        warmupTicks={100}       // Pre-calculate layout before showing
+        cooldownTicks={100}     // Stop iterating early so layout freezes stably
         onNodeClick={(node: any) => setSelectedNode(node)}
       />
 
