@@ -81,7 +81,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     };
 
     try {
-      getPusherServer().trigger(channels.conversation(convId), events.NEW_MESSAGE, messageData);
+      getPusherServer()?.trigger(channels.conversation(convId), events.NEW_MESSAGE, messageData);
     } catch { /* ignore pusher errors */ }
 
     return NextResponse.json({ success: true, data: messageData }, { status: 201 });

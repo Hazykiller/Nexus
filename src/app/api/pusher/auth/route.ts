@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
     const userName = session.user.name || '';
 
     const pusher = getPusherServer();
+    if (!pusher) return NextResponse.json({ error: 'Pusher not configured' }, { status: 500 });
 
     if (channel.startsWith('presence-')) {
       const presenceData = {

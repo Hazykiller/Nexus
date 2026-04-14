@@ -44,7 +44,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       const actor = await runSingleQuery<{ u: Record<string, unknown> }>(
         'MATCH (u:User {id: $userId}) RETURN u', { userId }
       );
-      getPusherServer().trigger(channels.notifications(targetId), events.NEW_NOTIFICATION, {
+      getPusherServer()?.trigger(channels.notifications(targetId), events.NEW_NOTIFICATION, {
         type: 'follow',
         actor: actor?.u,
       });

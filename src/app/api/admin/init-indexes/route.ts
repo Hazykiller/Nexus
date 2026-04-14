@@ -14,6 +14,7 @@ export async function POST(req: NextRequest) {
       'CREATE INDEX IF NOT EXISTS FOR (u:User) ON (u.id)',
       'CREATE INDEX IF NOT EXISTS FOR (u:User) ON (u.username)',
       'CREATE INDEX IF NOT EXISTS FOR (u:User) ON (u.email)',
+      'CREATE INDEX IF NOT EXISTS FOR (u:User) ON (u.emailHash)',
       'CREATE INDEX IF NOT EXISTS FOR (p:Post) ON (p.id)',
       'CREATE INDEX IF NOT EXISTS FOR (s:Story) ON (s.id)',
       'CREATE INDEX IF NOT EXISTS FOR (m:Message) ON (m.id)',
