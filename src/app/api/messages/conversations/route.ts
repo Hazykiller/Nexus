@@ -43,10 +43,20 @@ export async function GET(req: NextRequest) {
 
       let decryptedLastMessage = r.lastMessage as any;
       if (decryptedLastMessage && decryptedLastMessage.content) {
-        decryptedLastMessage = {
-          ...decryptedLastMessage,
-          content: decryptMessage(decryptedLastMessage.content),
-        };
+        try {
+          const decryptedStr = decryptMessage(decryptedLastMessage.content);
+          const parsedStr = JSON.parse(decryptedStr);
+          decryptedLastMessage = {
+            ...decryptedLastMessage,
+            ...parsedStr,
+            content: parsedStr.content // Set content to the unencrypted plain text
+          };
+        } catch (e) {
+          decryptedLastMessage = {
+            ...decryptedLastMessage,
+            content: decryptMessage(decryptedLastMessage.content),
+          };
+        }
       }
 
       return {

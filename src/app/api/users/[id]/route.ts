@@ -74,7 +74,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const dob = formData.get('dob') as string | null;
     const privacy = formData.get('privacy') as string | null;
 
-    let avatarUrl = undefined;
+    let avatarUrl: string | null = null;
     const avatarFile = formData.get('avatar') as File | null;
     if (avatarFile && avatarFile.size > 0) {
       avatarUrl = await uploadFile(avatarFile);

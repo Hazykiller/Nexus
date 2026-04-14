@@ -16,6 +16,7 @@ import { CldUploadWidget } from 'next-cloudinary';
 interface Message {
   id: string;
   content: string;
+  mediaUrl?: string;
   senderId: string;
   createdAt: string;
   sender: {
@@ -36,6 +37,7 @@ export default function ChatViewPage() {
   const [partner, setPartner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [inputText, setInputText] = useState('');
+  const [mediaUrl, setMediaUrl] = useState('');
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -94,12 +96,13 @@ export default function ChatViewPage() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim() || sending) return;
+    if ((!inputText.trim() && !mediaUrl) || sending) return;
 
     const tempId = `temp-${Date.now()}`;
     const tempMsg: Message = {
       id: tempId,
       content: inputText,
+      mediaUrl: mediaUrl,
       senderId: userId,
       createdAt: new Date().toISOString(),
       sender: {
@@ -111,13 +114,14 @@ export default function ChatViewPage() {
 
     setMessages((prev) => [...prev, tempMsg]);
     setInputText('');
+    setMediaUrl('');
     setSending(true);
 
     try {
       const res = await fetch(`/api/messages/${conversationId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: tempMsg.content }),
+        body: JSON.stringify({ content: tempMsg.content, mediaUrl: tempMsg.mediaUrl }),
       });
       const data = await res.json();
       if (data.success) {
@@ -198,8 +202,11 @@ export default function ChatViewPage() {
                       isMe
                         ? 'bg-gradient-to-br from-cyan-600 to-emerald-600 text-white rounded-2xl rounded-tr-sm'
                         : 'bg-muted text-foreground rounded-2xl rounded-tl-sm border border-border/50'
-                    }`}
+                    } ${msg.mediaUrl ? 'p-2' : ''}`}
                   >
+                    {msg.mediaUrl && (
+                      <img src={msg.mediaUrl} alt="attachment" className="max-w-full sm:max-w-[200px] rounded-lg mb-2 object-cover" />
+                    )}
                     {msg.content}
                   </div>
                   <span className="text-[10px] text-muted-foreground mt-1 px-1">
@@ -214,43 +221,59 @@ export default function ChatViewPage() {
       </div>
 
       {/* Input Area */}
-      <form onSubmit={handleSendMessage} className="p-3 bg-card border-t border-border mt-auto shrink-0 flex gap-2">
-        <CldUploadWidget
-          uploadPreset="vertex_social"
-          onSuccess={(result: any) => {
-            const url = result?.info?.secure_url;
-            if (url) {
-              setInputText(prev => prev + (prev ? '\n' : '') + url);
-            }
-          }}
-        >
-          {({ open }: { open: () => void }) => (
+      <div className="p-3 bg-card border-t border-border mt-auto shrink-0 flex flex-col gap-2">
+        {mediaUrl && (
+          <div className="relative inline-block mb-2 self-start bg-muted p-2 rounded-xl">
+            <img src={mediaUrl} alt="Upload preview" className="h-20 w-auto rounded-lg object-cover" />
             <Button
               type="button"
-              variant="ghost"
+              variant="destructive"
               size="icon"
-              onClick={() => open()}
-              className="shrink-0 text-muted-foreground hover:text-cyan-400 hover:bg-cyan-400/10 rounded-full"
+              className="absolute -top-2 -right-2 w-6 h-6 rounded-full"
+              onClick={() => setMediaUrl('')}
             >
-              <ImageIcon className="w-5 h-5" />
+              <span className="text-xs">×</span>
             </Button>
-          )}
-        </CldUploadWidget>
-        <Input
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          placeholder="Message..."
-          className="flex-1 rounded-full bg-muted border-none focus-visible:ring-1 focus-visible:ring-cyan-500 h-10 px-4"
-        />
-        <Button
-          type="submit"
-          disabled={!inputText.trim() || sending}
-          className="shrink-0 rounded-full h-10 px-4 flex items-center gap-2 bg-gradient-to-r from-cyan-600 to-emerald-600 text-white hover:from-cyan-500 hover:to-emerald-500 disabled:opacity-50"
-        >
-          <Send className="w-4 h-4" />
-          <span className="hidden sm:inline">Send</span>
-        </Button>
-      </form>
+          </div>
+        )}
+        <form onSubmit={handleSendMessage} className="flex gap-2 w-full">
+          <CldUploadWidget
+            uploadPreset="vertex_social"
+            onSuccess={(result: any) => {
+              const url = result?.info?.secure_url;
+              if (url) {
+                setMediaUrl(url);
+              }
+            }}
+          >
+            {({ open }: { open: () => void }) => (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => open()}
+                className="shrink-0 text-muted-foreground hover:text-cyan-400 hover:bg-cyan-400/10 rounded-full"
+              >
+                <ImageIcon className="w-5 h-5" />
+              </Button>
+            )}
+          </CldUploadWidget>
+          <Input
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            placeholder="Message..."
+            className="flex-1 rounded-full bg-muted border-none focus-visible:ring-1 focus-visible:ring-cyan-500 h-10 px-4"
+          />
+          <Button
+            type="submit"
+            disabled={(!inputText.trim() && !mediaUrl) || sending}
+            className="shrink-0 rounded-full h-10 px-4 flex items-center gap-2 bg-gradient-to-r from-cyan-600 to-emerald-600 text-white hover:from-cyan-500 hover:to-emerald-500 disabled:opacity-50"
+          >
+            <Send className="w-4 h-4" />
+            <span className="hidden sm:inline">Send</span>
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }
