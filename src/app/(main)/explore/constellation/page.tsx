@@ -217,19 +217,9 @@ export default function ConstellationPage() {
             onNodeClick={handleNodeClick}
             cooldownTicks={100}
             onEngineStop={() => {
-               // Auto rotate camera gently
+               // Center graph on load
                if (!selected && graphRef.current) {
-                 const distance = 400;
-                 let angle = 0;
-                 setInterval(() => {
-                    if (!selected && graphRef.current) {
-                      graphRef.current.cameraPosition({
-                        x: distance * Math.sin(angle),
-                        z: distance * Math.cos(angle)
-                      });
-                      angle += Math.PI / 800; // spin speed
-                    }
-                 }, 16);
+                 graphRef.current.zoomToFit(400, 80);
                }
             }}
           />
